@@ -208,6 +208,121 @@
   animation: pet-idle-bounce 2s ease-in-out infinite;
 }
 
+.pet-aura,
+.pet-shadow,
+.state-mark {
+  position: absolute;
+  pointer-events: none;
+}
+
+.pet-aura {
+  inset: 10% 8%;
+  z-index: -1;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--pet-accent) 42%, transparent), transparent 68%);
+  filter: blur(10px);
+  opacity: 0.62;
+  animation: aura-breathe 1.8s ease-in-out infinite;
+}
+
+.pet-shadow {
+  right: 17%;
+  bottom: -2%;
+  left: 17%;
+  z-index: -2;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(52, 38, 56, 0.22);
+  filter: blur(4px);
+  animation: shadow-pulse 2s ease-in-out infinite;
+}
+
+.state-mark {
+  z-index: 3;
+  display: none;
+}
+
+.hunger-mark,
+.sleep-mark,
+.sick-mark {
+  right: 4%;
+  top: 8%;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border: 4px solid #342638;
+  border-radius: 18px;
+  background: #fff7eb;
+  box-shadow: 0 7px 0 rgba(52, 38, 56, 0.18);
+  color: #342638;
+  font-size: 1.55rem;
+  font-weight: 950;
+  animation: state-badge-pop 900ms ease-in-out infinite;
+}
+
+.dirt-mark {
+  width: 46px;
+  height: 34px;
+  border: 4px solid rgba(52, 38, 56, 0.75);
+  border-radius: 999px 40px 999px 50px;
+  background: #8b5e34;
+  box-shadow: inset 0 -6px 0 rgba(52, 38, 56, 0.18);
+  opacity: 0.88;
+}
+
+.dirt-one {
+  left: 18%;
+  top: 36%;
+  rotate: -18deg;
+}
+
+.dirt-two {
+  right: 18%;
+  bottom: 30%;
+  rotate: 18deg;
+}
+
+.fly-mark {
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  background: #342638;
+  color: #342638;
+  box-shadow: 12px 7px 0 -6px #342638, -8px -4px 0 -6px #342638;
+  animation: fly-loop 1.3s ease-in-out infinite;
+}
+
+.fly-one {
+  left: 10%;
+  top: 18%;
+}
+
+.fly-two {
+  right: 10%;
+  top: 26%;
+  animation-delay: 320ms;
+}
+
+.hype-star {
+  display: none;
+  color: #facc15;
+  font-size: 2rem;
+  text-shadow: 0 3px 0 #342638;
+  animation: star-orbit 1.2s ease-in-out infinite;
+}
+
+.star-one {
+  left: 7%;
+  top: 14%;
+}
+
+.star-two {
+  right: 9%;
+  top: 19%;
+  animation-delay: 260ms;
+}
+
 .pet-image {
   width: 100%;
   filter: drop-shadow(0 26px 22px rgba(52, 38, 56, 0.2));
@@ -217,14 +332,63 @@
   animation: pet-hype 900ms ease-in-out infinite;
 }
 
+.pet-wrap.hype .hype-star {
+  display: block;
+}
+
 .pet-wrap.tired {
   animation: pet-sleepy-idle 2.4s ease-in-out infinite;
   filter: saturate(0.85);
 }
 
+.pet-wrap.tired .sleep-mark {
+  display: grid;
+}
+
 .pet-wrap.sick {
   animation: pet-shiver 240ms linear infinite;
   filter: hue-rotate(80deg) saturate(0.8);
+}
+
+.pet-wrap.sick .sick-mark {
+  display: grid;
+  color: #16a34a;
+}
+
+.pet-wrap.messy .dirt-mark,
+.pet-wrap.messy .fly-mark {
+  display: grid;
+}
+
+.pet-wrap.messy .pet-image {
+  filter: sepia(0.28) saturate(0.72) drop-shadow(0 26px 22px rgba(52, 38, 56, 0.2));
+}
+
+.pet-wrap.hungry .hunger-mark {
+  display: grid;
+}
+
+.species-mochi .pet-aura {
+  background: radial-gradient(circle, rgba(255, 122, 168, 0.5), transparent 68%);
+}
+
+.species-pipo .pet-wrap {
+  animation-duration: 1.25s;
+}
+
+.species-luma .pet-aura {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.62), transparent 68%);
+  animation: aura-breathe 1.3s ease-in-out infinite, luma-twinkle 900ms ease-in-out infinite;
+}
+
+.species-bubu .stage-floor {
+  background:
+    repeating-radial-gradient(circle at 48% 80%, rgba(255, 255, 255, 0.22) 0 8px, transparent 8px 20px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(52, 38, 56, 0.08));
+}
+
+.species-niko .pet-aura {
+  background: conic-gradient(from 90deg, rgba(249, 115, 22, 0.7), transparent, rgba(250, 204, 21, 0.62), transparent);
 }
 
 .pet-wrap.messy::after,
@@ -604,6 +768,16 @@
     margin: 4px 0 0;
     font-size: 1.05rem;
   }
+
+  small {
+    display: block;
+    margin-top: 5px;
+    color: #6c586d;
+    font-size: 0.72rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
 }
 
 .xp-track {
@@ -826,6 +1000,19 @@
   &.warning strong {
     color: #e11d48;
   }
+
+  &.warning {
+    padding: 9px;
+    border: 2px solid rgba(225, 29, 72, 0.18);
+    border-radius: 16px;
+    background: rgba(255, 228, 230, 0.58);
+  }
+
+  &.critical {
+    animation: critical-pulse 900ms ease-in-out infinite;
+    border-color: rgba(225, 29, 72, 0.42);
+    background: linear-gradient(90deg, rgba(255, 228, 230, 0.92), rgba(254, 242, 242, 0.72));
+  }
 }
 
 .stat-name,
@@ -932,6 +1119,10 @@
   }
 
   button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
     border: 0;
     border-radius: 14px;
     background: color-mix(in srgb, var(--pet-accent) 26%, #9de8ff);
@@ -939,6 +1130,13 @@
     cursor: pointer;
     font-weight: 950;
     padding: 10px 12px;
+    box-shadow: 0 6px 0 rgba(52, 38, 56, 0.14);
+    transition: transform 140ms ease, box-shadow 140ms ease;
+
+    &:active:not(:disabled) {
+      box-shadow: 0 2px 0 rgba(52, 38, 56, 0.16);
+      transform: translateY(4px);
+    }
 
     &:disabled {
       cursor: not-allowed;
@@ -1520,6 +1718,93 @@ button:focus-visible {
   }
 }
 
+@keyframes aura-breathe {
+  0%,
+  100% {
+    opacity: 0.45;
+    scale: 0.96;
+  }
+
+  50% {
+    opacity: 0.78;
+    scale: 1.08;
+  }
+}
+
+@keyframes shadow-pulse {
+  0%,
+  100% {
+    opacity: 0.24;
+    transform: scaleX(0.86);
+  }
+
+  50% {
+    opacity: 0.32;
+    transform: scaleX(1.08);
+  }
+}
+
+@keyframes state-badge-pop {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(4deg);
+  }
+}
+
+@keyframes fly-loop {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  35% {
+    transform: translate(18px, -12px) rotate(18deg);
+  }
+
+  70% {
+    transform: translate(-10px, 10px) rotate(-15deg);
+  }
+}
+
+@keyframes star-orbit {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateY(0) scale(0.8) rotate(0deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-16px) scale(1.2) rotate(18deg);
+  }
+}
+
+@keyframes luma-twinkle {
+  0%,
+  100% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+
+  50% {
+    filter: hue-rotate(28deg) brightness(1.25);
+  }
+}
+
+@keyframes critical-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(225, 29, 72, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 0 5px rgba(225, 29, 72, 0.12);
+  }
+}
+
 @keyframes pet-hype {
   0%,
   100% {
@@ -2078,6 +2363,25 @@ button:focus-visible {
     right: 12px;
     bottom: 62px;
     font-size: 0.9rem;
+  }
+
+  .hunger-mark,
+  .sleep-mark,
+  .sick-mark {
+    width: 44px;
+    height: 44px;
+    border-width: 3px;
+    font-size: 1.2rem;
+  }
+
+  .dirt-mark {
+    width: 34px;
+    height: 26px;
+    border-width: 3px;
+  }
+
+  .hype-star {
+    font-size: 1.55rem;
   }
 
   .actions-panel {

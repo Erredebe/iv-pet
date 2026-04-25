@@ -32,6 +32,11 @@
         [class.scene-night]="actionScene === 'night'"
         [class.scene-bath]="actionScene === 'bath'"
         [class.scene-clinic]="actionScene === 'clinic'"
+        [class.species-mochi]="game.pet().id === 'mochi'"
+        [class.species-pipo]="game.pet().id === 'pipo'"
+        [class.species-luma]="game.pet().id === 'luma'"
+        [class.species-bubu]="game.pet().id === 'bubu'"
+        [class.species-niko]="game.pet().id === 'niko'"
         [class.action-feed]="activeAction === 'feed' || activeAction === 'berry'"
         [class.action-play]="activeAction === 'play' || activeAction === 'ball'"
         [class.action-sleep]="activeAction === 'sleep'"
@@ -67,10 +72,17 @@
         </div>
         <div class="pet-wrap" [class]="petCondition()">
           <img class="pet-image" [src]="game.petImage()" [alt]="game.pet().speciesName" />
-          <span class="pet-status pet-status-hungry">!</span>
-          <span class="pet-status pet-status-sleep">Z</span>
-          <span class="pet-status pet-status-sick">✚</span>
-          <span class="pet-status pet-status-messy">✦</span>
+          <span class="pet-aura" aria-hidden="true"></span>
+          <span class="pet-shadow" aria-hidden="true"></span>
+          <span class="state-mark hunger-mark" aria-hidden="true">🍽</span>
+          <span class="state-mark sleep-mark" aria-hidden="true">Z</span>
+          <span class="state-mark sick-mark" aria-hidden="true">✚</span>
+          <span class="state-mark dirt-mark dirt-one" aria-hidden="true"></span>
+          <span class="state-mark dirt-mark dirt-two" aria-hidden="true"></span>
+          <span class="state-mark fly-mark fly-one" aria-hidden="true">•</span>
+          <span class="state-mark fly-mark fly-two" aria-hidden="true">•</span>
+          <span class="state-mark hype-star star-one" aria-hidden="true">★</span>
+          <span class="state-mark hype-star star-two" aria-hidden="true">✦</span>
         </div>
         <div class="arcade-particles" aria-hidden="true">
           @for (particle of arcadeParticles; track particle.id) {
@@ -122,18 +134,21 @@
       </div>
 
       <div class="pet-info-grid">
-        <div>
-          <p class="label">Evolución</p>
-          <h2>{{ game.stage().name }}</h2>
-        </div>
-        <div>
-          <p class="label">Edad</p>
-          <h2>{{ game.state().age }} días</h2>
-        </div>
-        <div>
-          <p class="label">XP</p>
-          <h2>{{ game.xpProgress().current }}/{{ game.xpProgress().threshold }}</h2>
-        </div>
+          <div>
+            <p class="label">Evolución</p>
+            <h2>{{ game.stage().name }}</h2>
+            <small>Etapa {{ game.stage().index }} / 3</small>
+          </div>
+          <div>
+            <p class="label">Edad</p>
+            <h2>{{ game.state().age }} días</h2>
+            <small>Ritmo arcade</small>
+          </div>
+          <div>
+            <p class="label">XP</p>
+            <h2>{{ game.xpProgress().current }}/{{ game.xpProgress().threshold }}</h2>
+            <small>{{ game.xpProgress().percent }}%</small>
+          </div>
       </div>
 
       <div class="xp-track" aria-label="Progreso de experiencia">
@@ -186,7 +201,7 @@
                 <strong>{{ goal.complete ? '✓' : '•' }} {{ goal.title }}</strong>
                 <span>{{ goal.description }}</span>
               </div>
-              <small>{{ goal.progress }}/{{ goal.target }}</small>
+              <small>{{ goal.complete ? 'LISTO' : goal.progress + '/' + goal.target }}</small>
             </div>
           }
         </div>
@@ -226,7 +241,7 @@
             { icon: '🫧', name: 'Higiene', key: 'hygiene', value: game.state().hygiene },
             { icon: '💚', name: 'Salud', key: 'health', value: game.state().health }
           ]; track stat.key) {
-            <div class="stat-row" [class.warning]="stat.value < 35">
+            <div class="stat-row" [class.warning]="stat.value < 35" [class.critical]="stat.value < 20">
               <span class="stat-name">{{ stat.icon }} {{ stat.name }}</span>
               <div class="bar" aria-hidden="true">
                 <div [class]="'fill ' + statLevel(stat.value)" [style.width.%]="stat.value"></div>
@@ -274,7 +289,7 @@
               <p>{{ item.description }}</p>
             </div>
             <button type="button" [disabled]="miniGameActive" (click)="buy(item)">
-              {{ item.price }} monedas
+              <span>🪙</span>{{ item.price }}
             </button>
           </div>
         }
