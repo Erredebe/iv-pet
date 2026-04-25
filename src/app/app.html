@@ -1,0 +1,143 @@
+<main class="shell">
+  <section class="hero-card">
+    <div class="hero-copy">
+      <span class="eyebrow">Tamagotchi sin backend</span>
+      <h1>Cuida a {{ game.state().name }} todos los dias.</h1>
+      <p>
+        Alimenta, juega, descansa, compra objetos y gana monedas para que tu
+        mascota evolucione en una criatura feliz.
+      </p>
+    </div>
+
+    <div class="wallet">
+      <span>Monedas</span>
+      <strong>{{ game.state().coins }}</strong>
+    </div>
+  </section>
+
+  <section class="dashboard">
+    <article class="pet-card">
+      <div class="pet-stage" [class]="game.mood().color">
+        <div class="sparkle one"></div>
+        <div class="sparkle two"></div>
+        <div class="pet-shadow"></div>
+        <div class="pet-body">
+          <div class="pet-ears"></div>
+          <div class="pet-face">{{ game.mood().face }}</div>
+          <div class="pet-blush left"></div>
+          <div class="pet-blush right"></div>
+        </div>
+      </div>
+
+      <div class="pet-summary">
+        <div>
+          <p class="label">Estado</p>
+          <h2>{{ game.mood().label }}</h2>
+        </div>
+        <div>
+          <p class="label">Evolucion</p>
+          <h2>{{ game.evolution().emoji }} {{ game.evolution().name }}</h2>
+        </div>
+      </div>
+
+      <div class="meta-grid">
+        <span>Edad {{ game.state().age }}</span>
+        <span>Nivel {{ game.state().level }}</span>
+        <span>XP {{ game.state().xp }}/{{ game.state().level * 100 }}</span>
+      </div>
+    </article>
+
+    <article class="panel stats-panel">
+      <div class="panel-heading">
+        <p class="label">Cuidados</p>
+        <strong>{{ game.averageCare() }}%</strong>
+      </div>
+
+      <div class="stat-list">
+        @for (stat of [
+          { name: 'Hambre', key: 'hunger', value: game.state().hunger },
+          { name: 'Energia', key: 'energy', value: game.state().energy },
+          { name: 'Felicidad', key: 'happiness', value: game.state().happiness },
+          { name: 'Higiene', key: 'hygiene', value: game.state().hygiene },
+          { name: 'Salud', key: 'health', value: game.state().health }
+        ]; track stat.key) {
+          <div class="stat-row">
+            <span>{{ stat.name }}</span>
+            <div class="bar">
+              <div [class]="'fill ' + statLevel(stat.value)" [style.width.%]="stat.value"></div>
+            </div>
+            <strong>{{ stat.value }}%</strong>
+          </div>
+        }
+      </div>
+    </article>
+  </section>
+
+  <section class="actions-grid">
+    <button type="button" (click)="game.feed()">Alimentar</button>
+    <button type="button" (click)="game.play()">Jugar</button>
+    <button type="button" (click)="game.sleep()">Dormir</button>
+    <button type="button" (click)="game.clean()">Bano</button>
+    <button type="button" (click)="game.heal()">Clinica</button>
+    <button type="button" class="mini" (click)="game.trainReflexes()">Minijuego</button>
+  </section>
+
+  <section class="content-grid">
+    <article class="panel">
+      <div class="panel-heading">
+        <div>
+          <p class="label">Tienda</p>
+          <h3>Objetos utiles</h3>
+        </div>
+      </div>
+
+      <div class="shop-list">
+        @for (item of game.shopItems; track item.key) {
+          <div class="shop-item">
+            <div class="item-icon">{{ item.icon }}</div>
+            <div>
+              <strong>{{ item.name }}</strong>
+              <p>{{ item.description }}</p>
+            </div>
+            <button type="button" (click)="game.buy(item)">{{ item.price }} monedas</button>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="panel inventory-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="label">Inventario</p>
+          <h3>Mochila</h3>
+        </div>
+      </div>
+
+      <div class="inventory-grid">
+        @for (item of game.shopItems; track item.key) {
+          <button type="button" class="inventory-item" (click)="game.useItem(item.key)">
+            <span>{{ item.icon }}</span>
+            <strong>x{{ game.state().inventory[item.key] }}</strong>
+            <small>{{ item.name }}</small>
+          </button>
+        }
+      </div>
+    </article>
+
+    <article class="panel log-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="label">Diario</p>
+          <h3>Ultimos eventos</h3>
+        </div>
+        <button type="button" class="ghost" (click)="game.reset()">Reiniciar</button>
+      </div>
+
+      <ul>
+        @for (entry of game.state().log; track entry) {
+          <li>{{ entry }}</li>
+        }
+      </ul>
+    </article>
+  </section>
+</main>
