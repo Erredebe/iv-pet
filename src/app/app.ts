@@ -33,6 +33,8 @@ export class App implements OnInit, OnDestroy {
   private feedbackTimer?: ReturnType<typeof setTimeout>;
   private miniGameTimer?: ReturnType<typeof setInterval>;
   private comboTimer?: ReturnType<typeof setTimeout>;
+  private unlockTimer?: ReturnType<typeof setTimeout>;
+  private evolutionTimer?: ReturnType<typeof setTimeout>;
   private fireflyId = 0;
   private particleId = 0;
 
@@ -48,8 +50,11 @@ export class App implements OnInit, OnDestroy {
   protected miniGameTime = 0;
   protected miniGameCombo = 0;
   protected miniGameBestCombo = 0;
+  protected miniGameGoldCaught = 0;
   protected miniGameRank = 'Aprendiz nocturno';
   protected fireflies: Firefly[] = [];
+  protected unlockedAchievement?: string;
+  protected evolutionStage?: string;
   protected selectedSpecies: PetSpecies = this.game.state().species;
   protected petName = this.game.state().name;
   protected confirmReset = false;
@@ -68,6 +73,8 @@ export class App implements OnInit, OnDestroy {
     clearTimeout(this.actionTimer);
     clearTimeout(this.feedbackTimer);
     clearTimeout(this.comboTimer);
+    clearTimeout(this.unlockTimer);
+    clearTimeout(this.evolutionTimer);
     clearInterval(this.miniGameTimer);
   }
 
@@ -133,7 +140,9 @@ export class App implements OnInit, OnDestroy {
   }
 
   protected buy(item: ShopAction): void {
-    this.showFeedback(this.game.buy(item));
+    const result = this.game.buy(item);
+    this.showFeedback(result);
+    this.showUnlocks(result);
   }
 
   protected useItem(key: InventoryAction): void {
@@ -163,6 +172,11 @@ export class App implements OnInit, OnDestroy {
       const comboBonus = Math.floor(this.miniGameCombo / 4);
       const points = base + comboBonus;
       this.miniGameScore += points;
+
+      if (firefly.type === 'gold') {
+        this.miniGameGoldCaught += 1;
+      }
+
       this.spawnParticle(firefly.type === 'gold' ? `+${points} dorada` : `+${points}`, firefly.x, firefly.y);
     }
 
@@ -209,6 +223,7 @@ export class App implements OnInit, OnDestroy {
 
   private handleResult(action: ActionName, result: ActionResult): void {
     this.showFeedback(result);
+    this.showUnlocks(result);
 
     if (result.success) {
       this.playAction(action);
@@ -221,6 +236,25 @@ export class App implements OnInit, OnDestroy {
     this.feedbackTimer = setTimeout(() => {
       this.feedback = undefined;
     }, 2200);
+  }
+
+  private showUnlocks(result: ActionResult): void {
+    if (result.evolved && result.stageName) {
+      this.evolutionStage = result.stageName;
+      clearTimeout(this.evolutionTimer);
+      this.evolutionTimer = setTimeout(() => {
+        this.evolutionStage = undefined;
+      }, 2600);
+    }
+
+    if (result.achievements?.length) {
+      const achievement = this.game.achievements().find((item) => item.id === result.achievements?.[0]);
+      this.unlockedAchievement = achievement?.title ?? 'Logro desbloqueado';
+      clearTimeout(this.unlockTimer);
+      this.unlockTimer = setTimeout(() => {
+        this.unlockedAchievement = undefined;
+      }, 2600);
+    }
   }
 
   private playAction(action: ActionName): void {
@@ -248,6 +282,7 @@ export class App implements OnInit, OnDestroy {
     this.miniGameScore = 0;
     this.miniGameCombo = 0;
     this.miniGameBestCombo = 0;
+    this.miniGameGoldCaught = 0;
     this.miniGameRank = 'Aprendiz nocturno';
     this.miniGameTime = 12;
     this.fireflies = Array.from({ length: 6 }, () => this.createFirefly());
@@ -267,9 +302,14 @@ export class App implements OnInit, OnDestroy {
     this.miniGameActive = false;
     this.fireflies = [];
     this.miniGameRank = this.rankForScore(this.miniGameScore);
-    this.miniGameResult = this.game.finishReflexGame(this.miniGameScore);
+    this.miniGameResult = this.game.finishReflexGame(
+      this.miniGameScore,
+      this.miniGameBestCombo,
+      this.miniGameGoldCaught,
+    );
     this.miniGameFinished = true;
     this.showFeedback(this.miniGameResult);
+    this.showUnlocks(this.miniGameResult);
 
     if (this.miniGameResult.success) {
       this.playAction('play');

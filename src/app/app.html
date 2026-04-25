@@ -139,6 +139,15 @@
       <div class="xp-track" aria-label="Progreso de experiencia">
         <div [style.width.%]="game.xpProgress().percent"></div>
       </div>
+
+      <div class="evolution-track" [class.complete]="game.evolutionProgress().complete">
+        <span>{{ game.evolutionProgress().currentStage }}</span>
+        <strong>→</strong>
+        <span>{{ game.evolutionProgress().nextStage }}</span>
+        <small>
+          {{ game.evolutionProgress().complete ? 'Evolución máxima actual' : 'Nivel ' + game.evolutionProgress().nextLevel }}
+        </small>
+      </div>
     </article>
 
     <aside class="side-stack">
@@ -168,12 +177,34 @@
 
         <div class="goals-list">
           @for (goal of game.goals(); track goal.title) {
-            <div class="goal-item" [class.complete]="goal.complete">
+            <div
+              class="goal-item"
+              [class.complete]="goal.complete"
+              [style.--goal-progress]="(goal.progress / goal.target) * 100 + '%'"
+            >
               <div>
                 <strong>{{ goal.complete ? '✓' : '•' }} {{ goal.title }}</strong>
                 <span>{{ goal.description }}</span>
               </div>
               <small>{{ goal.progress }}/{{ goal.target }}</small>
+            </div>
+          }
+        </div>
+      </article>
+
+      <article class="panel achievements-panel">
+        <div class="panel-heading compact">
+          <div>
+            <p class="label">Logros</p>
+            <h3>Medallas arcade</h3>
+          </div>
+        </div>
+
+        <div class="achievements-grid">
+          @for (achievement of game.achievements(); track achievement.id) {
+            <div class="achievement-chip" [class.unlocked]="achievement.unlocked">
+              <strong>{{ achievement.unlocked ? '★' : '☆' }}</strong>
+              <span>{{ achievement.title }}</span>
             </div>
           }
         </div>
@@ -395,6 +426,23 @@
 
         <button type="button" class="start-button" (click)="adoptSelectedPet()">Empezar a cuidar</button>
       </div>
+    </section>
+  }
+
+  @if (evolutionStage) {
+    <section class="evolution-burst" aria-label="Mascota evolucionada">
+      <div>
+        <span>¡Evolución!</span>
+        <strong>{{ evolutionStage }}</strong>
+        <small>Nueva etapa desbloqueada</small>
+      </div>
+    </section>
+  }
+
+  @if (unlockedAchievement) {
+    <section class="unlock-toast" aria-label="Logro desbloqueado">
+      <strong>★ Logro desbloqueado</strong>
+      <span>{{ unlockedAchievement }}</span>
     </section>
   }
 

@@ -37,8 +37,20 @@ interface GameState {
   hygiene: number;
   health: number;
   inventory: Record<InventoryKey, number>;
+  progress: GameProgress;
+  achievements: string[];
   log: string[];
   lastTick: number;
+}
+
+interface GameProgress {
+  actionsDone: number;
+  itemsBought: number;
+  itemsUsed: number;
+  gamesPlayed: number;
+  firefliesCaught: number;
+  goldFirefliesCaught: number;
+  bestCombo: number;
 }
 
 export interface ActionResult {
@@ -46,6 +58,27 @@ export interface ActionResult {
   message: string;
   coins?: number;
   xp?: number;
+  leveledUp?: boolean;
+  evolved?: boolean;
+  stageName?: string;
+  achievements?: string[];
+}
+
+export interface Mission {
+  id: string;
+  title: string;
+  description: string;
+  progress: number;
+  target: number;
+  complete: boolean;
+  reward: string;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  unlocked: boolean;
 }
 
 const STORAGE_KEY = 'tamagotchi-pet-state';
@@ -151,6 +184,16 @@ const DEFAULT_INVENTORY: Record<InventoryKey, number> = {
   ball: 1,
 };
 
+const DEFAULT_PROGRESS: GameProgress = {
+  actionsDone: 0,
+  itemsBought: 0,
+  itemsUsed: 0,
+  gamesPlayed: 0,
+  firefliesCaught: 0,
+  goldFirefliesCaught: 0,
+  bestCombo: 0,
+};
+
 @Injectable({ providedIn: 'root' })
 export class GameService {
   readonly shopItems = SHOP_ITEMS;
@@ -232,33 +275,90 @@ export class GameService {
     };
   });
 
-  readonly goals = computed(() => {
+  readonly goals = computed<Mission[]>(() => {
     const pet = this.state();
     const care = this.averageCare();
 
     return [
       {
+        id: 'care-80',
         title: 'Cuidador atento',
         description: 'Mantén el cuidado medio sobre 80%.',
         progress: Math.min(care, 80),
         target: 80,
         complete: care >= 80,
+        reward: '+ cuidado estable',
       },
       {
+        id: 'level-2',
         title: 'Primera evolución',
         description: 'Sube a nivel 2 para cambiar de etapa.',
         progress: Math.min(pet.level, 2),
         target: 2,
         complete: pet.level >= 2,
+        reward: 'nueva etapa',
       },
       {
+        id: 'coins-75',
         title: 'Ahorrador',
         description: 'Junta 75 monedas para la tienda.',
         progress: Math.min(pet.coins, 75),
         target: 75,
         complete: pet.coins >= 75,
+        reward: '+ opciones',
+      },
+      {
+        id: 'actions-12',
+        title: 'Rutina arcade',
+        description: 'Realiza 12 acciones exitosas.',
+        progress: Math.min(pet.progress.actionsDone, 12),
+        target: 12,
+        complete: pet.progress.actionsDone >= 12,
+        reward: '+ práctica',
+      },
+      {
+        id: 'fireflies-30',
+        title: 'Cazachispas',
+        description: 'Atrapa 30 luciérnagas en minijuegos.',
+        progress: Math.min(pet.progress.firefliesCaught, 30),
+        target: 30,
+        complete: pet.progress.firefliesCaught >= 30,
+        reward: '+ reflejos',
+      },
+      {
+        id: 'combo-8',
+        title: 'Combo x8',
+        description: 'Logra un combo de 8 en luciérnagas.',
+        progress: Math.min(pet.progress.bestCombo, 8),
+        target: 8,
+        complete: pet.progress.bestCombo >= 8,
+        reward: 'rango arcade',
       },
     ];
+  });
+
+  readonly achievements = computed<Achievement[]>(() => {
+    const state = this.state();
+    const unlocked = new Set(state.achievements);
+    const definitions = this.achievementDefinitions(state);
+
+    return definitions.map((achievement) => ({
+      ...achievement,
+      unlocked: unlocked.has(achievement.id),
+    }));
+  });
+
+  readonly evolutionProgress = computed(() => {
+    const pet = this.state();
+    const nextLevel = pet.level < 2 ? 2 : pet.level < 4 ? 4 : 6;
+    const nextStage = pet.level < 2 ? this.pet().stages[1] : pet.level < 4 ? this.pet().stages[2] : 'Maestro arcade';
+
+    return {
+      currentStage: this.stage().name,
+      nextStage,
+      nextLevel,
+      complete: pet.level >= 4,
+    };
   });
 
   adoptPet(species: PetSpecies, name: string): void {
@@ -298,15 +398,16 @@ export class GameService {
   }
 
   feed(): ActionResult {
-    const result = { success: true, message: '', xp: 5 };
+    let result: ActionResult = { success: true, message: '', xp: 5 };
 
-    this.update((pet) => this.addLog(this.levelUp({
+    this.update((pet) => this.withResult(this.addLog(this.levelUp({
       ...pet,
+      progress: this.bumpProgress(pet.progress, 'actionsDone'),
       hunger: clamp(pet.hunger + 18),
       energy: clamp(pet.energy + 4),
       happiness: clamp(pet.happiness + 5),
       xp: pet.xp + 5,
-    }), result.message = `${pet.name} comio un snack casero y quedo satisfecho.`));
+    }), result.message = `${pet.name} comio un snack casero y quedo satisfecho.`), pet, result));
 
     return result;
   }
@@ -325,14 +426,15 @@ export class GameService {
       const happinessBonus = pet.species === 'pipo' ? 24 : 18;
       result.message = `${pet.name} jugo en el patio y gano experiencia.`;
 
-      return this.addLog(this.levelUp({
+      return this.withResult(this.addLog(this.levelUp({
         ...pet,
+        progress: this.bumpProgress(pet.progress, 'actionsDone'),
         happiness: clamp(pet.happiness + happinessBonus),
         energy: clamp(pet.energy - energyCost),
         hygiene: clamp(pet.hygiene - 8),
         hunger: clamp(pet.hunger - 5),
         xp: pet.xp + 8,
-      }), result.message);
+      }), result.message), pet, result);
     });
 
     return result;
@@ -345,13 +447,14 @@ export class GameService {
       const healthBonus = pet.species === 'mochi' ? 12 : 7;
       result.message = `${pet.name} durmio una siesta esponjosa.`;
 
-      return this.addLog(this.levelUp({
+      return this.withResult(this.addLog(this.levelUp({
         ...pet,
+        progress: this.bumpProgress(pet.progress, 'actionsDone'),
         energy: clamp(pet.energy + 26),
         health: clamp(pet.health + healthBonus),
         hunger: clamp(pet.hunger - 6),
         xp: pet.xp + 4,
-      }), result.message);
+      }), result.message), pet, result);
     });
 
     return result;
@@ -360,12 +463,13 @@ export class GameService {
   clean(): ActionResult {
     const result = { success: true, message: '', xp: 4 };
 
-    this.update((pet) => this.addLog(this.levelUp({
+    this.update((pet) => this.withResult(this.addLog(this.levelUp({
       ...pet,
+      progress: this.bumpProgress(pet.progress, 'actionsDone'),
       hygiene: clamp(pet.hygiene + 25),
       happiness: clamp(pet.happiness + 4),
       xp: pet.xp + 4,
-    }), result.message = `${pet.name} quedo brillante despues del bano.`));
+    }), result.message = `${pet.name} quedo brillante despues del bano.`), pet, result));
 
     return result;
   }
@@ -381,12 +485,13 @@ export class GameService {
 
       result.message = `${pet.name} paso por la clinica y ya se siente mejor.`;
 
-      return this.addLog({
+      return this.withResult(this.addLog({
         ...pet,
+        progress: this.bumpProgress(pet.progress, 'actionsDone'),
         coins: pet.coins - 10,
         health: clamp(pet.health + 22),
         happiness: clamp(pet.happiness - 3),
-      }, result.message);
+      }, result.message), pet, result);
     });
 
     return result;
@@ -410,14 +515,15 @@ export class GameService {
 
       result.message = `Compraste ${item.name}.`;
 
-      return this.addLog({
+      return this.withResult(this.addLog({
         ...pet,
         coins: pet.coins - item.price,
+        progress: this.bumpProgress(pet.progress, 'itemsBought'),
         inventory: {
           ...pet.inventory,
           [item.key]: pet.inventory[item.key] + 1,
         },
-      }, result.message);
+      }, result.message), pet, result);
     });
 
     return result;
@@ -442,40 +548,44 @@ export class GameService {
 
       if (key === 'berry') {
         result = { success: true, message: 'Las bayas desaparecieron en segundos.', xp: 6 };
-        return this.addLog(this.levelUp({
+        return this.withResult(this.addLog(this.levelUp({
           ...next,
+          progress: this.bumpProgress(next.progress, 'itemsUsed'),
           hunger: clamp(next.hunger + 24),
           energy: clamp(next.energy + 8),
           xp: next.xp + 6,
-        }), result.message);
+        }), result.message), pet, result);
       }
 
       if (key === 'soap') {
         result = { success: true, message: 'Un bano de burbujas cambio el humor de la mascota.', xp: 5 };
-        return this.addLog(this.levelUp({
+        return this.withResult(this.addLog(this.levelUp({
           ...next,
+          progress: this.bumpProgress(next.progress, 'itemsUsed'),
           hygiene: clamp(next.hygiene + 35),
           happiness: clamp(next.happiness + 6),
           xp: next.xp + 5,
-        }), result.message);
+        }), result.message), pet, result);
       }
 
       if (key === 'medicine') {
         result = { success: true, message: 'El jarabe arcoiris hizo efecto.' };
-        return this.addLog({
+        return this.withResult(this.addLog({
           ...next,
+          progress: this.bumpProgress(next.progress, 'itemsUsed'),
           health: clamp(next.health + 38),
           energy: clamp(next.energy + 4),
-        }, result.message);
+        }, result.message), pet, result);
       }
 
       result = { success: true, message: 'La pelota saltarina fue un exito.', xp: 8 };
-      return this.addLog(this.levelUp({
+      return this.withResult(this.addLog(this.levelUp({
         ...next,
+        progress: this.bumpProgress(next.progress, 'itemsUsed'),
         happiness: clamp(next.happiness + 24),
         energy: clamp(next.energy - 4),
         xp: next.xp + 8,
-      }), result.message);
+      }), result.message), pet, result);
     });
 
     return result;
@@ -493,15 +603,15 @@ export class GameService {
       }
 
       const score = Math.floor(Math.random() * 26) + 10;
-      result = this.reflexResult(pet, score);
+      result = this.reflexResult(pet, score, 0, 0);
 
-      return this.applyReflexScore(pet, score, energyCost);
+      return this.applyReflexScore(pet, score, energyCost, 0, 0);
     });
 
     return result;
   }
 
-  finishReflexGame(score: number): ActionResult {
+  finishReflexGame(score: number, bestCombo = 0, goldCaught = 0): ActionResult {
     let result: ActionResult = { success: true, message: '' };
 
     this.update((pet) => {
@@ -512,9 +622,9 @@ export class GameService {
         return this.addLog(pet, result.message);
       }
 
-      result = this.reflexResult(pet, score);
+      result = this.reflexResult(pet, score, bestCombo, goldCaught);
 
-      return this.applyReflexScore(pet, score, energyCost);
+      return this.applyReflexScore(pet, score, energyCost, bestCombo, goldCaught);
     });
 
     return result;
@@ -534,6 +644,8 @@ export class GameService {
       xp: 0,
       ...pet.initialStats,
       inventory: { ...DEFAULT_INVENTORY },
+      progress: { ...DEFAULT_PROGRESS },
+      achievements: [],
       log,
       lastTick: Date.now(),
     };
@@ -569,29 +681,126 @@ export class GameService {
     };
   }
 
+  private withResult(next: GameState, previous: GameState, result: ActionResult): GameState {
+    const previousStage = this.stageIndex(previous.level);
+    const nextStage = this.stageIndex(next.level);
+    const achievements = this.unlockAchievements(next);
+
+    result.leveledUp = next.level > previous.level;
+    result.evolved = nextStage > previousStage;
+    result.stageName = result.evolved ? this.findPet(next.species).stages[nextStage] : undefined;
+    result.achievements = achievements;
+
+    return achievements.length > 0 ? { ...next, achievements: [...next.achievements, ...achievements] } : next;
+  }
+
+  private unlockAchievements(state: GameState): string[] {
+    const unlocked = new Set(state.achievements);
+
+    return this.achievementDefinitions(state)
+      .filter((achievement) => achievement.complete && !unlocked.has(achievement.id))
+      .map((achievement) => achievement.id);
+  }
+
+  private achievementDefinitions(state: GameState): Array<Omit<Achievement, 'unlocked'> & { complete: boolean }> {
+    return [
+      {
+        id: 'first-care',
+        title: 'Primer cuidado',
+        description: 'Realiza tu primera acción exitosa.',
+        complete: state.progress.actionsDone >= 1,
+      },
+      {
+        id: 'happy-pet',
+        title: 'Mascota radiante',
+        description: 'Alcanza 90% de cuidado medio.',
+        complete: this.averageCareFor(state) >= 90,
+      },
+      {
+        id: 'combo-5',
+        title: 'Combo x5',
+        description: 'Logra combo x5 en luciérnagas.',
+        complete: state.progress.bestCombo >= 5,
+      },
+      {
+        id: 'gold-hunter',
+        title: 'Cazador dorado',
+        description: 'Atrapa una luciérnaga dorada.',
+        complete: state.progress.goldFirefliesCaught >= 1,
+      },
+      {
+        id: 'collector',
+        title: 'Coleccionista',
+        description: 'Compra 6 objetos de la tienda.',
+        complete: state.progress.itemsBought >= 6,
+      },
+      {
+        id: 'evolution-1',
+        title: 'Evolución I',
+        description: 'Alcanza la segunda etapa.',
+        complete: state.level >= 2,
+      },
+      {
+        id: 'evolution-2',
+        title: 'Evolución II',
+        description: 'Alcanza la tercera etapa.',
+        complete: state.level >= 4,
+      },
+      {
+        id: 'rich-pet',
+        title: 'Tesoro arcade',
+        description: 'Junta 150 monedas.',
+        complete: state.coins >= 150,
+      },
+    ];
+  }
+
+  private averageCareFor(pet: GameState): number {
+    return Math.round((pet.hunger + pet.energy + pet.happiness + pet.hygiene + pet.health) / 5);
+  }
+
+  private bumpProgress(progress: GameProgress, key: keyof GameProgress, amount = 1): GameProgress {
+    return {
+      ...progress,
+      [key]: progress[key] + amount,
+    };
+  }
+
+  private stageIndex(level: number): number {
+    return level >= 4 ? 2 : level >= 2 ? 1 : 0;
+  }
+
   private xpThreshold(pet: Pick<GameState, 'level' | 'species'>): number {
     const thresholdModifier = pet.species === 'luma' ? 0.85 : 1;
 
     return Math.round(pet.level * 100 * thresholdModifier);
   }
 
-  private applyReflexScore(pet: GameState, score: number, energyCost: number): GameState {
-    const result = this.reflexResult(pet, score);
+  private applyReflexScore(pet: GameState, score: number, energyCost: number, bestCombo: number, goldCaught: number): GameState {
+    const result = this.reflexResult(pet, score, bestCombo, goldCaught);
 
-    return this.addLog(this.levelUp({
+    return this.withResult(this.addLog(this.levelUp({
       ...pet,
       coins: pet.coins + (result.coins ?? 0),
       energy: clamp(pet.energy - energyCost),
       happiness: clamp(pet.happiness + 10 + Math.min(score, 12)),
       hunger: clamp(pet.hunger - 6),
       xp: pet.xp + (result.xp ?? 0),
-    }), result.message);
+      progress: {
+        ...pet.progress,
+        gamesPlayed: pet.progress.gamesPlayed + 1,
+        firefliesCaught: pet.progress.firefliesCaught + score,
+        goldFirefliesCaught: pet.progress.goldFirefliesCaught + goldCaught,
+        bestCombo: Math.max(pet.progress.bestCombo, bestCombo),
+      },
+    }), result.message), pet, result);
   }
 
-  private reflexResult(pet: GameState, score: number): ActionResult {
+  private reflexResult(pet: GameState, score: number, bestCombo: number, goldCaught: number): ActionResult {
     const coinMultiplier = pet.species === 'niko' ? 2 : 1;
-    const coins = Math.floor(score / 3) * coinMultiplier;
-    const xp = pet.species === 'luma' ? score + 10 : score;
+    const comboBonus = Math.floor(bestCombo / 3);
+    const coins = (Math.floor(score / 3) + comboBonus + goldCaught * 2) * coinMultiplier;
+    const xp = (pet.species === 'luma' ? score + 10 : score) + bestCombo;
 
     return {
       success: true,
@@ -627,6 +836,11 @@ export class GameService {
           ...DEFAULT_INVENTORY,
           ...parsed.inventory,
         },
+        progress: {
+          ...DEFAULT_PROGRESS,
+          ...parsed.progress,
+        },
+        achievements: parsed.achievements ?? [],
         lastTick: parsed.lastTick ?? Date.now(),
       };
     } catch {
