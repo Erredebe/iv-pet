@@ -86,6 +86,7 @@
 }
 
 .hero-grid,
+.progress-grid,
 .content-grid {
   display: grid;
   max-width: 1200px;
@@ -94,7 +95,12 @@
 }
 
 .hero-grid {
+  align-items: start;
   grid-template-columns: minmax(360px, 1.05fr) minmax(360px, 0.95fr);
+}
+
+.progress-grid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
 }
 
 .pet-card,
@@ -107,7 +113,7 @@
 .pet-stage {
   position: relative;
   display: grid;
-  min-height: 430px;
+  min-height: clamp(340px, 42vh, 430px);
   place-items: center;
   overflow: hidden;
   border: 4px solid #342638;
@@ -841,6 +847,10 @@
 .side-stack {
   display: grid;
   gap: 16px;
+}
+
+.side-stack .stats-panel {
+  order: 3;
 }
 
 .tip-card {
@@ -2219,6 +2229,7 @@ button:focus-visible {
 
   .topbar,
   .hero-grid,
+  .progress-grid,
   .content-grid {
     grid-template-columns: 1fr;
   }

@@ -182,49 +182,6 @@
         </div>
       </article>
 
-      <article class="panel goals-panel">
-        <div class="panel-heading compact">
-          <div>
-            <p class="label">Misiones</p>
-            <h3>Objetivos activos</h3>
-          </div>
-        </div>
-
-        <div class="goals-list">
-          @for (goal of game.goals(); track goal.title) {
-            <div
-              class="goal-item"
-              [class.complete]="goal.complete"
-              [style.--goal-progress]="(goal.progress / goal.target) * 100 + '%'"
-            >
-              <div>
-                <strong>{{ goal.complete ? '✓' : '•' }} {{ goal.title }}</strong>
-                <span>{{ goal.description }}</span>
-              </div>
-              <small>{{ goal.complete ? 'LISTO' : goal.progress + '/' + goal.target }}</small>
-            </div>
-          }
-        </div>
-      </article>
-
-      <article class="panel achievements-panel">
-        <div class="panel-heading compact">
-          <div>
-            <p class="label">Logros</p>
-            <h3>Medallas arcade</h3>
-          </div>
-        </div>
-
-        <div class="achievements-grid">
-          @for (achievement of game.achievements(); track achievement.id) {
-            <div class="achievement-chip" [class.unlocked]="achievement.unlocked">
-              <strong>{{ achievement.unlocked ? '★' : '☆' }}</strong>
-              <span>{{ achievement.title }}</span>
-            </div>
-          }
-        </div>
-      </article>
-
       <article class="panel stats-panel">
         <div class="panel-heading compact">
           <div>
@@ -269,6 +226,51 @@
         <small>{{ action.hint }}</small>
       </button>
     }
+  </section>
+
+  <section class="progress-grid" aria-label="Progreso de partida">
+    <article class="panel goals-panel">
+      <div class="panel-heading compact">
+        <div>
+          <p class="label">Misiones</p>
+          <h3>Objetivos activos</h3>
+        </div>
+      </div>
+
+      <div class="goals-list">
+        @for (goal of game.goals(); track goal.title) {
+          <div
+            class="goal-item"
+            [class.complete]="goal.complete"
+            [style.--goal-progress]="(goal.progress / goal.target) * 100 + '%'"
+          >
+            <div>
+              <strong>{{ goal.complete ? '✓' : '•' }} {{ goal.title }}</strong>
+              <span>{{ goal.description }}</span>
+            </div>
+            <small>{{ goal.complete ? 'LISTO' : goal.progress + '/' + goal.target }}</small>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="panel achievements-panel">
+      <div class="panel-heading compact">
+        <div>
+          <p class="label">Logros</p>
+          <h3>Medallas arcade</h3>
+        </div>
+      </div>
+
+      <div class="achievements-grid">
+        @for (achievement of game.achievements(); track achievement.id) {
+          <div class="achievement-chip" [class.unlocked]="achievement.unlocked">
+            <strong>{{ achievement.unlocked ? '★' : '☆' }}</strong>
+            <span>{{ achievement.title }}</span>
+          </div>
+        }
+      </div>
+    </article>
   </section>
 
   <section class="content-grid">
