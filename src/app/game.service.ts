@@ -41,6 +41,13 @@ interface GameState {
   lastTick: number;
 }
 
+export interface ActionResult {
+  success: boolean;
+  message: string;
+  coins?: number;
+  xp?: number;
+}
+
 const STORAGE_KEY = 'tamagotchi-pet-state';
 
 const PETS: PetDefinition[] = [
@@ -240,25 +247,33 @@ export class GameService {
     });
   }
 
-  feed(): void {
+  feed(): ActionResult {
+    const result = { success: true, message: '', xp: 5 };
+
     this.update((pet) => this.addLog(this.levelUp({
       ...pet,
       hunger: clamp(pet.hunger + 18),
       energy: clamp(pet.energy + 4),
       happiness: clamp(pet.happiness + 5),
       xp: pet.xp + 5,
-    }), `${pet.name} comio un snack casero y quedo satisfecho.`));
+    }), result.message = `${pet.name} comio un snack casero y quedo satisfecho.`));
+
+    return result;
   }
 
-  play(): void {
+  play(): ActionResult {
+    let result: ActionResult = { success: true, message: '', xp: 8 };
+
     this.update((pet) => {
       const energyCost = pet.species === 'niko' ? 16 : 12;
 
       if (pet.energy < energyCost) {
-        return this.addLog(pet, `${pet.name} esta demasiado cansado para jugar.`);
+        result = { success: false, message: `${pet.name} esta demasiado cansado para jugar.` };
+        return this.addLog(pet, result.message);
       }
 
       const happinessBonus = pet.species === 'pipo' ? 24 : 18;
+      result.message = `${pet.name} jugo en el patio y gano experiencia.`;
 
       return this.addLog(this.levelUp({
         ...pet,
@@ -267,13 +282,18 @@ export class GameService {
         hygiene: clamp(pet.hygiene - 8),
         hunger: clamp(pet.hunger - 5),
         xp: pet.xp + 8,
-      }), `${pet.name} jugo en el patio y gano experiencia.`);
+      }), result.message);
     });
+
+    return result;
   }
 
-  sleep(): void {
+  sleep(): ActionResult {
+    const result = { success: true, message: '', xp: 4 };
+
     this.update((pet) => {
       const healthBonus = pet.species === 'mochi' ? 12 : 7;
+      result.message = `${pet.name} durmio una siesta esponjosa.`;
 
       return this.addLog(this.levelUp({
         ...pet,
@@ -281,32 +301,45 @@ export class GameService {
         health: clamp(pet.health + healthBonus),
         hunger: clamp(pet.hunger - 6),
         xp: pet.xp + 4,
-      }), `${pet.name} durmio una siesta esponjosa.`);
+      }), result.message);
     });
+
+    return result;
   }
 
-  clean(): void {
+  clean(): ActionResult {
+    const result = { success: true, message: '', xp: 4 };
+
     this.update((pet) => this.addLog(this.levelUp({
       ...pet,
       hygiene: clamp(pet.hygiene + 25),
       happiness: clamp(pet.happiness + 4),
       xp: pet.xp + 4,
-    }), `${pet.name} quedo brillante despues del bano.`));
+    }), result.message = `${pet.name} quedo brillante despues del bano.`));
+
+    return result;
   }
 
-  heal(): void {
+  heal(): ActionResult {
+    let result: ActionResult = { success: true, message: '', coins: -10 };
+
     this.update((pet) => {
       if (pet.coins < 10) {
-        return this.addLog(pet, 'Faltan monedas para visitar la clinica.');
+        result = { success: false, message: 'Faltan monedas para visitar la clinica.' };
+        return this.addLog(pet, result.message);
       }
+
+      result.message = `${pet.name} paso por la clinica y ya se siente mejor.`;
 
       return this.addLog({
         ...pet,
         coins: pet.coins - 10,
         health: clamp(pet.health + 22),
         happiness: clamp(pet.happiness - 3),
-      }, `${pet.name} paso por la clinica y ya se siente mejor.`);
+      }, result.message);
     });
+
+    return result;
   }
 
   canTrainReflexes(): boolean {
@@ -316,11 +349,16 @@ export class GameService {
     return pet.energy >= energyCost;
   }
 
-  buy(item: InventoryItem): void {
+  buy(item: InventoryItem): ActionResult {
+    let result: ActionResult = { success: true, message: '', coins: -item.price };
+
     this.update((pet) => {
       if (pet.coins < item.price) {
-        return this.addLog(pet, `No alcanzan las monedas para ${item.name}.`);
+        result = { success: false, message: `No alcanzan las monedas para ${item.name}.` };
+        return this.addLog(pet, result.message);
       }
+
+      result.message = `Compraste ${item.name}.`;
 
       return this.addLog({
         ...pet,
@@ -329,14 +367,19 @@ export class GameService {
           ...pet.inventory,
           [item.key]: pet.inventory[item.key] + 1,
         },
-      }, `Compraste ${item.name}.`);
+      }, result.message);
     });
+
+    return result;
   }
 
-  useItem(key: InventoryKey): void {
+  useItem(key: InventoryKey): ActionResult {
+    let result: ActionResult = { success: true, message: '' };
+
     this.update((pet) => {
       if (pet.inventory[key] <= 0) {
-        return this.addLog(pet, 'No queda ese objeto en el inventario.');
+        result = { success: false, message: 'No queda ese objeto en el inventario.' };
+        return this.addLog(pet, result.message);
       }
 
       const next = {
@@ -348,64 +391,83 @@ export class GameService {
       };
 
       if (key === 'berry') {
+        result = { success: true, message: 'Las bayas desaparecieron en segundos.', xp: 6 };
         return this.addLog(this.levelUp({
           ...next,
           hunger: clamp(next.hunger + 24),
           energy: clamp(next.energy + 8),
           xp: next.xp + 6,
-        }), 'Las bayas desaparecieron en segundos.');
+        }), result.message);
       }
 
       if (key === 'soap') {
+        result = { success: true, message: 'Un bano de burbujas cambio el humor de la mascota.', xp: 5 };
         return this.addLog(this.levelUp({
           ...next,
           hygiene: clamp(next.hygiene + 35),
           happiness: clamp(next.happiness + 6),
           xp: next.xp + 5,
-        }), 'Un bano de burbujas cambio el humor de la mascota.');
+        }), result.message);
       }
 
       if (key === 'medicine') {
+        result = { success: true, message: 'El jarabe arcoiris hizo efecto.' };
         return this.addLog({
           ...next,
           health: clamp(next.health + 38),
           energy: clamp(next.energy + 4),
-        }, 'El jarabe arcoiris hizo efecto.');
+        }, result.message);
       }
 
+      result = { success: true, message: 'La pelota saltarina fue un exito.', xp: 8 };
       return this.addLog(this.levelUp({
         ...next,
         happiness: clamp(next.happiness + 24),
         energy: clamp(next.energy - 4),
         xp: next.xp + 8,
-      }), 'La pelota saltarina fue un exito.');
+      }), result.message);
     });
+
+    return result;
   }
 
-  trainReflexes(): void {
+  trainReflexes(): ActionResult {
+    let result: ActionResult = { success: true, message: '' };
+
     this.update((pet) => {
       const energyCost = pet.species === 'bubu' ? 20 : 18;
 
       if (pet.energy < energyCost) {
-        return this.addLog(pet, 'Necesita energia para el minijuego.');
+        result = { success: false, message: 'Necesita energia para el minijuego.' };
+        return this.addLog(pet, result.message);
       }
 
       const score = Math.floor(Math.random() * 26) + 10;
+      result = this.reflexResult(pet, score);
 
       return this.applyReflexScore(pet, score, energyCost);
     });
+
+    return result;
   }
 
-  finishReflexGame(score: number): void {
+  finishReflexGame(score: number): ActionResult {
+    let result: ActionResult = { success: true, message: '' };
+
     this.update((pet) => {
       const energyCost = pet.species === 'bubu' ? 20 : 18;
 
       if (pet.energy < energyCost) {
-        return this.addLog(pet, 'Necesita energia para el minijuego.');
+        result = { success: false, message: 'Necesita energia para el minijuego.' };
+        return this.addLog(pet, result.message);
       }
+
+      result = this.reflexResult(pet, score);
 
       return this.applyReflexScore(pet, score, energyCost);
     });
+
+    return result;
   }
 
   reset(): void {
@@ -461,18 +523,29 @@ export class GameService {
   }
 
   private applyReflexScore(pet: GameState, score: number, energyCost: number): GameState {
+    const result = this.reflexResult(pet, score);
+
+    return this.addLog(this.levelUp({
+      ...pet,
+      coins: pet.coins + (result.coins ?? 0),
+      energy: clamp(pet.energy - energyCost),
+      happiness: clamp(pet.happiness + 10 + Math.min(score, 12)),
+      hunger: clamp(pet.hunger - 6),
+      xp: pet.xp + (result.xp ?? 0),
+    }), result.message);
+  }
+
+  private reflexResult(pet: GameState, score: number): ActionResult {
     const coinMultiplier = pet.species === 'niko' ? 2 : 1;
     const coins = Math.floor(score / 3) * coinMultiplier;
     const xp = pet.species === 'luma' ? score + 10 : score;
 
-    return this.addLog(this.levelUp({
-      ...pet,
-      coins: pet.coins + coins,
-      energy: clamp(pet.energy - energyCost),
-      happiness: clamp(pet.happiness + 10 + Math.min(score, 12)),
-      hunger: clamp(pet.hunger - 6),
-      xp: pet.xp + xp,
-    }), `${pet.name} atrapo ${score} luciernagas y gano ${coins} monedas.`);
+    return {
+      success: true,
+      message: `${pet.name} atrapo ${score} luciernagas y gano ${coins} monedas.`,
+      coins,
+      xp,
+    };
   }
 
   private loadState(): GameState {

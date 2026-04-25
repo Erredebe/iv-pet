@@ -1,8 +1,9 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { GameService } from './game.service';
+import { ActionResult, GameService } from './game.service';
 
 type InventoryAction = 'berry' | 'soap' | 'medicine' | 'ball';
 type ActionName = 'feed' | 'play' | 'sleep' | 'clean' | 'heal' | InventoryAction;
+type ShopAction = { key: InventoryAction; name: string; icon: string; description: string; price: number };
 
 interface Firefly {
   id: number;
@@ -20,23 +21,32 @@ export class App implements OnInit, OnDestroy {
   protected readonly game = inject(GameService);
   private timer?: ReturnType<typeof setInterval>;
   private actionTimer?: ReturnType<typeof setTimeout>;
+  private feedbackTimer?: ReturnType<typeof setTimeout>;
   private miniGameTimer?: ReturnType<typeof setInterval>;
   private fireflyId = 0;
 
   protected activeAction?: ActionName;
+  protected feedback?: ActionResult;
   protected miniGameActive = false;
+  protected miniGameFinished = false;
+  protected miniGameResult?: ActionResult;
   protected miniGameScore = 0;
   protected miniGameTime = 0;
   protected fireflies: Firefly[] = [];
 
   ngOnInit(): void {
     this.game.tick();
-    this.timer = setInterval(() => this.game.tick(), 4000);
+    this.timer = setInterval(() => {
+      if (!this.miniGameActive) {
+        this.game.tick();
+      }
+    }, 4000);
   }
 
   ngOnDestroy(): void {
     clearInterval(this.timer);
     clearTimeout(this.actionTimer);
+    clearTimeout(this.feedbackTimer);
     clearInterval(this.miniGameTimer);
   }
 
@@ -53,29 +63,34 @@ export class App implements OnInit, OnDestroy {
   }
 
   protected runAction(action: string): void {
+    let result: ActionResult | undefined;
+
     if (action === 'feed') {
-      this.game.feed();
-      this.playAction('feed');
+      result = this.game.feed();
+      this.handleResult('feed', result);
     } else if (action === 'play') {
-      this.game.play();
-      this.playAction('play');
+      result = this.game.play();
+      this.handleResult('play', result);
     } else if (action === 'sleep') {
-      this.game.sleep();
-      this.playAction('sleep');
+      result = this.game.sleep();
+      this.handleResult('sleep', result);
     } else if (action === 'clean') {
-      this.game.clean();
-      this.playAction('clean');
+      result = this.game.clean();
+      this.handleResult('clean', result);
     } else if (action === 'heal') {
-      this.game.heal();
-      this.playAction('heal');
+      result = this.game.heal();
+      this.handleResult('heal', result);
     } else if (action === 'trainReflexes') {
       this.startReflexGame();
     }
   }
 
+  protected buy(item: ShopAction): void {
+    this.showFeedback(this.game.buy(item));
+  }
+
   protected useItem(key: InventoryAction): void {
-    this.game.useItem(key);
-    this.playAction(key);
+    this.handleResult(key, this.game.useItem(key));
   }
 
   protected catchFirefly(id: number): void {
@@ -85,6 +100,27 @@ export class App implements OnInit, OnDestroy {
 
     this.miniGameScore += 1;
     this.fireflies = [...this.fireflies.filter((firefly) => firefly.id !== id), this.createFirefly()];
+  }
+
+  protected closeMiniGameResult(): void {
+    this.miniGameFinished = false;
+    this.miniGameResult = undefined;
+  }
+
+  private handleResult(action: ActionName, result: ActionResult): void {
+    this.showFeedback(result);
+
+    if (result.success) {
+      this.playAction(action);
+    }
+  }
+
+  private showFeedback(result: ActionResult): void {
+    this.feedback = result;
+    clearTimeout(this.feedbackTimer);
+    this.feedbackTimer = setTimeout(() => {
+      this.feedback = undefined;
+    }, 2200);
   }
 
   private playAction(action: ActionName): void {
@@ -97,13 +133,14 @@ export class App implements OnInit, OnDestroy {
 
   private startReflexGame(): void {
     if (!this.game.canTrainReflexes()) {
-      this.game.trainReflexes();
-      this.playAction('play');
+      this.showFeedback(this.game.trainReflexes());
       return;
     }
 
     clearInterval(this.miniGameTimer);
     this.miniGameActive = true;
+    this.miniGameFinished = false;
+    this.miniGameResult = undefined;
     this.miniGameScore = 0;
     this.miniGameTime = 12;
     this.fireflies = Array.from({ length: 5 }, () => this.createFirefly());
@@ -121,8 +158,13 @@ export class App implements OnInit, OnDestroy {
     clearInterval(this.miniGameTimer);
     this.miniGameActive = false;
     this.fireflies = [];
-    this.game.finishReflexGame(this.miniGameScore);
-    this.playAction('play');
+    this.miniGameResult = this.game.finishReflexGame(this.miniGameScore);
+    this.miniGameFinished = true;
+    this.showFeedback(this.miniGameResult);
+
+    if (this.miniGameResult.success) {
+      this.playAction('play');
+    }
   }
 
   private createFirefly(): Firefly {

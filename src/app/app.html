@@ -62,6 +62,22 @@
           </div>
         }
         <div class="mood-badge">{{ game.mood().face }} {{ game.mood().label }}</div>
+        @if (feedback) {
+          <div class="feedback-pop" [class.fail]="!feedback.success" aria-live="polite">
+            <strong>{{ feedback.success ? 'Buen trabajo' : 'Atención' }}</strong>
+            <span>{{ feedback.message }}</span>
+            @if (feedback.coins || feedback.xp) {
+              <small>
+                @if (feedback.coins) {
+                  <b>{{ feedback.coins > 0 ? '+' : '' }}{{ feedback.coins }} monedas</b>
+                }
+                @if (feedback.xp) {
+                  <b>+{{ feedback.xp }} XP</b>
+                }
+              </small>
+            }
+          </div>
+        }
       </div>
 
       <div class="pet-info-grid">
@@ -160,7 +176,9 @@
               <strong>{{ item.name }}</strong>
               <p>{{ item.description }}</p>
             </div>
-            <button type="button" (click)="game.buy(item)">{{ item.price }} monedas</button>
+            <button type="button" [disabled]="miniGameActive" (click)="buy(item)">
+              {{ item.price }} monedas
+            </button>
           </div>
         }
       </div>
@@ -233,6 +251,38 @@
         </div>
 
         <p class="mini-help">Toca todas las luciérnagas que puedas antes de que termine el tiempo.</p>
+      </div>
+    </section>
+  }
+
+  @if (miniGameFinished && miniGameResult) {
+    <section class="mini-game result-screen" aria-label="Resultado del minijuego">
+      <div class="mini-game-card result-card">
+        <p class="label">Resultado</p>
+        <h3>{{ miniGameResult.success ? '¡Partida completada!' : 'No se pudo jugar' }}</h3>
+        <div class="result-score">
+          <span>Luciérnagas</span>
+          <strong>{{ miniGameScore }}</strong>
+        </div>
+        <p>{{ miniGameResult.message }}</p>
+        @if (miniGameResult.success) {
+          <div class="result-rewards">
+            <div>
+              <span>Monedas</span>
+              <strong>+{{ miniGameResult.coins }}</strong>
+            </div>
+            <div>
+              <span>XP</span>
+              <strong>+{{ miniGameResult.xp }}</strong>
+            </div>
+          </div>
+        }
+        <div class="result-actions">
+          <button type="button" (click)="closeMiniGameResult()">Seguir cuidando</button>
+          <button type="button" class="primary" (click)="closeMiniGameResult(); runAction('trainReflexes')">
+            Jugar otra vez
+          </button>
+        </div>
       </div>
     </section>
   }
