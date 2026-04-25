@@ -309,6 +309,13 @@ export class GameService {
     });
   }
 
+  canTrainReflexes(): boolean {
+    const pet = this.state();
+    const energyCost = pet.species === 'bubu' ? 20 : 18;
+
+    return pet.energy >= energyCost;
+  }
+
   buy(item: InventoryItem): void {
     this.update((pet) => {
       if (pet.coins < item.price) {
@@ -384,18 +391,20 @@ export class GameService {
       }
 
       const score = Math.floor(Math.random() * 26) + 10;
-      const coinMultiplier = pet.species === 'niko' ? 2 : 1;
-      const coins = Math.floor(score / 3) * coinMultiplier;
-      const xp = pet.species === 'luma' ? score + 10 : score;
 
-      return this.addLog(this.levelUp({
-        ...pet,
-        coins: pet.coins + coins,
-        energy: clamp(pet.energy - energyCost),
-        happiness: clamp(pet.happiness + 10),
-        hunger: clamp(pet.hunger - 6),
-        xp: pet.xp + xp,
-      }), `${pet.name} atrapo ${score} luciernagas y gano ${coins} monedas.`);
+      return this.applyReflexScore(pet, score, energyCost);
+    });
+  }
+
+  finishReflexGame(score: number): void {
+    this.update((pet) => {
+      const energyCost = pet.species === 'bubu' ? 20 : 18;
+
+      if (pet.energy < energyCost) {
+        return this.addLog(pet, 'Necesita energia para el minijuego.');
+      }
+
+      return this.applyReflexScore(pet, score, energyCost);
     });
   }
 
@@ -449,6 +458,21 @@ export class GameService {
       ...pet,
       log: [entry, ...pet.log].slice(0, 7),
     };
+  }
+
+  private applyReflexScore(pet: GameState, score: number, energyCost: number): GameState {
+    const coinMultiplier = pet.species === 'niko' ? 2 : 1;
+    const coins = Math.floor(score / 3) * coinMultiplier;
+    const xp = pet.species === 'luma' ? score + 10 : score;
+
+    return this.addLog(this.levelUp({
+      ...pet,
+      coins: pet.coins + coins,
+      energy: clamp(pet.energy - energyCost),
+      happiness: clamp(pet.happiness + 10 + Math.min(score, 12)),
+      hunger: clamp(pet.hunger - 6),
+      xp: pet.xp + xp,
+    }), `${pet.name} atrapo ${score} luciernagas y gano ${coins} monedas.`);
   }
 
   private loadState(): GameState {

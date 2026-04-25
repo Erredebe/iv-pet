@@ -24,10 +24,43 @@
 
   <section class="hero-grid">
     <article class="pet-card">
-      <div class="pet-stage" [class]="game.mood().color">
+      <div
+        class="pet-stage"
+        [class]="game.mood().color"
+        [class.action-feed]="activeAction === 'feed' || activeAction === 'berry'"
+        [class.action-play]="activeAction === 'play' || activeAction === 'ball'"
+        [class.action-sleep]="activeAction === 'sleep'"
+        [class.action-clean]="activeAction === 'clean' || activeAction === 'soap'"
+        [class.action-heal]="activeAction === 'heal' || activeAction === 'medicine'"
+      >
         <div class="stage-orb orb-one"></div>
         <div class="stage-orb orb-two"></div>
         <img class="pet-image" [src]="game.petImage()" [alt]="game.pet().speciesName" />
+        @if (activeAction === 'feed' || activeAction === 'berry') {
+          <div class="action-effect feed-effect" aria-hidden="true">
+            <span>🍓</span><span>🥣</span><span>✨</span>
+          </div>
+        }
+        @if (activeAction === 'play' || activeAction === 'ball') {
+          <div class="action-effect play-effect" aria-hidden="true">
+            <span>🎾</span><span>⭐</span><span>🎯</span>
+          </div>
+        }
+        @if (activeAction === 'sleep') {
+          <div class="action-effect sleep-effect" aria-hidden="true">
+            <span>Z</span><span>Z</span><span>Z</span>
+          </div>
+        }
+        @if (activeAction === 'clean' || activeAction === 'soap') {
+          <div class="action-effect clean-effect" aria-hidden="true">
+            <span>🫧</span><span>🫧</span><span>✨</span>
+          </div>
+        }
+        @if (activeAction === 'heal' || activeAction === 'medicine') {
+          <div class="action-effect heal-effect" aria-hidden="true">
+            <span>✚</span><span>💚</span><span>✚</span>
+          </div>
+        }
         <div class="mood-badge">{{ game.mood().face }} {{ game.mood().label }}</div>
       </div>
 
@@ -102,7 +135,7 @@
       { icon: '🏥', title: 'Clínica', hint: '10 monedas', handler: 'heal' },
       { icon: '✨', title: 'Luciérnagas', hint: 'gana monedas', handler: 'trainReflexes' }
     ]; track action.handler) {
-      <button type="button" class="action-card" (click)="runAction(action.handler)">
+      <button type="button" class="action-card" [disabled]="miniGameActive" (click)="runAction(action.handler)">
         <span>{{ action.icon }}</span>
         <strong>{{ action.title }}</strong>
         <small>{{ action.hint }}</small>
@@ -143,7 +176,7 @@
 
       <div class="inventory-grid">
         @for (item of game.shopItems; track item.key) {
-          <button type="button" class="inventory-item" (click)="game.useItem(item.key)">
+          <button type="button" class="inventory-item" [disabled]="miniGameActive" (click)="useItem(item.key)">
             <span>{{ item.icon }}</span>
             <strong>x{{ game.state().inventory[item.key] }}</strong>
             <small>{{ item.name }}</small>
@@ -168,4 +201,39 @@
       </ul>
     </article>
   </section>
+
+  @if (miniGameActive) {
+    <section class="mini-game" aria-label="Minijuego de luciérnagas">
+      <div class="mini-game-card">
+        <div class="mini-game-hud">
+          <div>
+            <p class="label">Minijuego</p>
+            <h3>Atrapa luciérnagas</h3>
+          </div>
+          <div class="mini-score">
+            <span>{{ miniGameTime }}s</span>
+            <strong>{{ miniGameScore }}</strong>
+          </div>
+        </div>
+
+        <div class="firefly-field">
+          @for (firefly of fireflies; track firefly.id) {
+            <button
+              type="button"
+              class="firefly"
+              [style.left.%]="firefly.x"
+              [style.top.%]="firefly.y"
+              [style.animation-delay.s]="firefly.delay"
+              (click)="catchFirefly(firefly.id)"
+              aria-label="Atrapar luciérnaga"
+            >
+              ✨
+            </button>
+          }
+        </div>
+
+        <p class="mini-help">Toca todas las luciérnagas que puedas antes de que termine el tiempo.</p>
+      </div>
+    </section>
+  }
 </main>
