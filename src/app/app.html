@@ -27,15 +27,56 @@
       <div
         class="pet-stage"
         [class]="game.mood().color"
+        [class.scene-kitchen]="actionScene === 'kitchen'"
+        [class.scene-playground]="actionScene === 'playground'"
+        [class.scene-night]="actionScene === 'night'"
+        [class.scene-bath]="actionScene === 'bath'"
+        [class.scene-clinic]="actionScene === 'clinic'"
         [class.action-feed]="activeAction === 'feed' || activeAction === 'berry'"
         [class.action-play]="activeAction === 'play' || activeAction === 'ball'"
         [class.action-sleep]="activeAction === 'sleep'"
         [class.action-clean]="activeAction === 'clean' || activeAction === 'soap'"
         [class.action-heal]="activeAction === 'heal' || activeAction === 'medicine'"
       >
+        <div class="arcade-grid" aria-hidden="true"></div>
+        <div class="stage-spotlight" aria-hidden="true"></div>
+        <div class="stage-floor" aria-hidden="true"></div>
         <div class="stage-orb orb-one"></div>
         <div class="stage-orb orb-two"></div>
-        <img class="pet-image" [src]="game.petImage()" [alt]="game.pet().speciesName" />
+        <div class="scene-props" aria-hidden="true">
+          @if (actionScene === 'kitchen') {
+            <span class="prop prop-plate">🍜</span>
+            <span class="prop prop-snack">🍓</span>
+          }
+          @if (actionScene === 'playground') {
+            <span class="prop prop-ball">🎾</span>
+            <span class="prop prop-target">◎</span>
+          }
+          @if (actionScene === 'night') {
+            <span class="prop prop-moon">☾</span>
+            <span class="prop prop-blanket"></span>
+          }
+          @if (actionScene === 'bath') {
+            <span class="prop prop-shower">▾</span>
+            <span class="prop prop-foam">🫧</span>
+          }
+          @if (actionScene === 'clinic') {
+            <span class="prop prop-pulse">⌁</span>
+            <span class="prop prop-cross">✚</span>
+          }
+        </div>
+        <div class="pet-wrap" [class]="petCondition()">
+          <img class="pet-image" [src]="game.petImage()" [alt]="game.pet().speciesName" />
+          <span class="pet-status pet-status-hungry">!</span>
+          <span class="pet-status pet-status-sleep">Z</span>
+          <span class="pet-status pet-status-sick">✚</span>
+          <span class="pet-status pet-status-messy">✦</span>
+        </div>
+        <div class="arcade-particles" aria-hidden="true">
+          @for (particle of arcadeParticles; track particle.id) {
+            <span [style.left.%]="particle.x" [style.top.%]="particle.y">{{ particle.label }}</span>
+          }
+        </div>
         @if (activeAction === 'feed' || activeAction === 'berry') {
           <div class="action-effect feed-effect" aria-hidden="true">
             <span>🍓</span><span>🥣</span><span>✨</span>
@@ -264,18 +305,24 @@
             <button
               type="button"
               class="firefly"
+              [class.gold]="firefly.type === 'gold'"
+              [class.trick]="firefly.type === 'trick'"
               [style.left.%]="firefly.x"
               [style.top.%]="firefly.y"
               [style.animation-delay.s]="firefly.delay"
               (click)="catchFirefly(firefly.id)"
               aria-label="Atrapar luciérnaga"
             >
-              ✨
+              {{ firefly.type === 'trick' ? '✖' : firefly.type === 'gold' ? '★' : '✨' }}
             </button>
           }
+          <div class="combo-meter" [class.active]="miniGameCombo > 1">
+            <span>Combo</span>
+            <strong>x{{ miniGameCombo }}</strong>
+          </div>
         </div>
 
-        <p class="mini-help">Toca todas las luciérnagas que puedas antes de que termine el tiempo.</p>
+        <p class="mini-help">Dorada suma mucho. La trampa rompe combo y quita tiempo.</p>
       </div>
     </section>
   }
@@ -284,11 +331,14 @@
     <section class="mini-game result-screen" aria-label="Resultado del minijuego">
       <div class="mini-game-card result-card">
         <p class="label">Resultado</p>
-        <h3>{{ miniGameResult.success ? '¡Partida completada!' : 'No se pudo jugar' }}</h3>
+        <h3>{{ miniGameResult.success ? miniGameRank : 'No se pudo jugar' }}</h3>
         <div class="result-score">
           <span>Luciérnagas</span>
           <strong>{{ miniGameScore }}</strong>
         </div>
+        @if (miniGameResult.success) {
+          <p class="best-combo">Mejor combo x{{ miniGameBestCombo }}</p>
+        }
         <p>{{ miniGameResult.message }}</p>
         @if (miniGameResult.success) {
           <div class="result-rewards">
