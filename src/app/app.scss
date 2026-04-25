@@ -4,7 +4,7 @@
 
 .shell {
   min-height: 100vh;
-  padding: 28px;
+  padding: 20px 28px 28px;
   background:
     radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.9), transparent 25%),
     radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--pet-accent) 32%, transparent), transparent 28%),
@@ -30,12 +30,12 @@
   justify-content: space-between;
   gap: 20px;
   max-width: 1200px;
-  margin: 0 auto 22px;
-  padding: 24px;
+  margin: 0 auto 16px;
+  padding: 18px 22px;
 
   h1 {
     margin: 5px 0;
-    font-size: clamp(2.2rem, 5vw, 4.8rem);
+    font-size: clamp(2.1rem, 4.4vw, 4.2rem);
     line-height: 0.9;
     letter-spacing: -0.07em;
   }
@@ -90,8 +90,8 @@
 .content-grid {
   display: grid;
   max-width: 1200px;
-  margin: 0 auto 22px;
-  gap: 22px;
+  margin: 0 auto 16px;
+  gap: 16px;
 }
 
 .hero-grid {
@@ -107,13 +107,13 @@
 .panel,
 .tip-card,
 .trait-card {
-  padding: 22px;
+  padding: 16px;
 }
 
 .pet-stage {
   position: relative;
   display: grid;
-  min-height: clamp(340px, 42vh, 430px);
+  min-height: clamp(280px, 34vh, 360px);
   place-items: center;
   overflow: hidden;
   border: 4px solid #342638;
@@ -762,10 +762,10 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-top: 16px;
+  margin-top: 12px;
 
   div {
-    padding: 14px;
+    padding: 10px 12px;
     border-radius: 20px;
     background: #fff6e8;
   }
@@ -788,7 +788,7 @@
 
 .xp-track {
   height: 16px;
-  margin-top: 14px;
+  margin-top: 10px;
   overflow: hidden;
   border-radius: 999px;
   background: rgba(52, 38, 56, 0.1);
@@ -807,8 +807,8 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 8px;
-  margin-top: 12px;
-  padding: 10px;
+  margin-top: 10px;
+  padding: 8px 10px;
   border: 3px solid rgba(52, 38, 56, 0.12);
   border-radius: 18px;
   background: linear-gradient(135deg, #fff7eb, color-mix(in srgb, var(--pet-accent) 16%, #fff7eb));
@@ -858,8 +858,8 @@
   color: #fffaf0;
 
   p {
-    margin: 8px 0 0;
-    font-size: 1.25rem;
+    margin: 6px 0 0;
+    font-size: 1.08rem;
     font-weight: 900;
     line-height: 1.25;
   }
@@ -868,10 +868,10 @@
 .trait-card {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 
   div {
-    padding: 14px;
+    padding: 11px;
     border-radius: 20px;
     background: rgba(255, 246, 232, 0.9);
   }
@@ -997,14 +997,14 @@
 
 .stat-list {
   display: grid;
-  gap: 13px;
+  gap: 9px;
 }
 
 .stat-row {
   display: grid;
   grid-template-columns: 112px 1fr 48px;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 
   &.warning .stat-name,
   &.warning strong {
@@ -1031,7 +1031,7 @@
 }
 
 .bar {
-  height: 15px;
+  height: 12px;
   overflow: hidden;
   border-radius: 999px;
   background: rgba(52, 38, 56, 0.1);
@@ -1058,15 +1058,15 @@
 .actions-panel {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 12px;
+  gap: 10px;
   max-width: 1200px;
-  margin: 0 auto 22px;
-  padding: 14px;
+  margin: 0 auto 16px;
+  padding: 10px;
 }
 
 .action-card {
   display: grid;
-  min-height: 104px;
+  min-height: 82px;
   place-items: center;
   border: 0;
   border-radius: 22px;
@@ -1076,7 +1076,7 @@
   transition: transform 160ms ease, background 160ms ease;
 
   span {
-    font-size: 1.75rem;
+    font-size: 1.55rem;
   }
 
   strong {
@@ -1105,6 +1105,91 @@
 
 .content-grid {
   grid-template-columns: 1.25fr 0.85fr 1fr;
+}
+
+.tabbed-panel {
+  display: grid;
+  max-width: 1200px;
+  margin: 0 auto 22px;
+  gap: 14px;
+}
+
+.tabs-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px;
+  scrollbar-width: thin;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-width: 138px;
+    border: 3px solid transparent;
+    border-radius: 18px;
+    background: #fff7eb;
+    color: #342638;
+    cursor: pointer;
+    font-weight: 950;
+    padding: 11px 14px;
+    transition: background 140ms ease, border 140ms ease, transform 140ms ease;
+
+    span {
+      font-size: 1.1rem;
+    }
+
+    &.active {
+      border-color: #342638;
+      background: linear-gradient(135deg, var(--pet-accent), #facc15);
+      box-shadow: 0 7px 0 rgba(52, 38, 56, 0.16);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+.tab-content {
+  min-height: 245px;
+}
+
+.tab-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+
+  h3 {
+    margin: 4px 0 0;
+    font-size: clamp(1.35rem, 3vw, 2rem);
+  }
+
+  &.with-action {
+    align-items: start;
+  }
+}
+
+.compact-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.compact-inventory {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.compact-goals {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.compact-achievements {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.compact-log ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .shop-list,
@@ -1209,6 +1294,22 @@
     color: #4d3f4d;
     line-height: 1.25;
   }
+}
+
+.shop-list.compact-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.inventory-grid.compact-inventory {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.goals-list.compact-goals {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.achievements-grid.compact-achievements {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .ghost {
@@ -2243,6 +2344,17 @@ button:focus-visible {
     grid-template-columns: repeat(3, 1fr);
   }
 
+  .shop-list.compact-list,
+  .goals-list.compact-goals,
+  .compact-log ul {
+    grid-template-columns: 1fr;
+  }
+
+  .inventory-grid.compact-inventory,
+  .achievements-grid.compact-achievements {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .mini-game-card {
     border-radius: 26px;
   }
@@ -2260,6 +2372,29 @@ button:focus-visible {
   .trait-card,
   .actions-panel {
     border-radius: 24px;
+  }
+
+  .tabbed-panel {
+    margin-bottom: 16px;
+  }
+
+  .tabs-bar {
+    margin: -2px;
+    padding: 2px;
+
+    button {
+      min-width: 116px;
+      padding: 10px 12px;
+    }
+  }
+
+  .tab-content {
+    min-height: auto;
+  }
+
+  .inventory-grid.compact-inventory,
+  .achievements-grid.compact-achievements {
+    grid-template-columns: 1fr 1fr;
   }
 
   .topbar {

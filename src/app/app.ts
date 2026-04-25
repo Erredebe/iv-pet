@@ -4,6 +4,7 @@ import { ActionResult, GameService, PetSpecies } from './game.service';
 type InventoryAction = 'berry' | 'soap' | 'medicine' | 'ball';
 type ActionName = 'feed' | 'play' | 'sleep' | 'clean' | 'heal' | InventoryAction;
 type FireflyType = 'normal' | 'gold' | 'trick';
+type PanelTab = 'shop' | 'inventory' | 'missions' | 'achievements' | 'log';
 type ShopAction = { key: InventoryAction; name: string; icon: string; description: string; price: number };
 
 interface Firefly {
@@ -58,6 +59,7 @@ export class App implements OnInit, OnDestroy {
   protected selectedSpecies: PetSpecies = this.game.state().species;
   protected petName = this.game.state().name;
   protected confirmReset = false;
+  protected activePanelTab: PanelTab = 'shop';
 
   ngOnInit(): void {
     this.game.tick();
@@ -219,6 +221,10 @@ export class App implements OnInit, OnDestroy {
   protected confirmNewPet(): void {
     this.confirmReset = false;
     this.game.reset();
+  }
+
+  protected selectPanelTab(tab: string): void {
+    this.activePanelTab = tab as PanelTab;
   }
 
   private handleResult(action: ActionName, result: ActionResult): void {

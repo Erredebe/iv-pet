@@ -228,110 +228,124 @@
     }
   </section>
 
-  <section class="progress-grid" aria-label="Progreso de partida">
-    <article class="panel goals-panel">
-      <div class="panel-heading compact">
-        <div>
-          <p class="label">Misiones</p>
-          <h3>Objetivos activos</h3>
-        </div>
-      </div>
+  <section class="tabbed-panel panel" aria-label="Paneles secundarios">
+    <div class="tabs-bar" role="tablist" aria-label="Secciones de partida">
+      @for (tab of [
+        { key: 'shop', icon: '🛒', label: 'Tienda' },
+        { key: 'inventory', icon: '🎒', label: 'Mochila' },
+        { key: 'missions', icon: '🎯', label: 'Misiones' },
+        { key: 'achievements', icon: '🏅', label: 'Logros' },
+        { key: 'log', icon: '📓', label: 'Diario' }
+      ]; track tab.key) {
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activePanelTab === tab.key"
+          [class.active]="activePanelTab === tab.key"
+          (click)="selectPanelTab(tab.key)"
+        >
+          <span>{{ tab.icon }}</span>{{ tab.label }}
+        </button>
+      }
+    </div>
 
-      <div class="goals-list">
-        @for (goal of game.goals(); track goal.title) {
-          <div
-            class="goal-item"
-            [class.complete]="goal.complete"
-            [style.--goal-progress]="(goal.progress / goal.target) * 100 + '%'"
-          >
-            <div>
-              <strong>{{ goal.complete ? '✓' : '•' }} {{ goal.title }}</strong>
-              <span>{{ goal.description }}</span>
-            </div>
-            <small>{{ goal.complete ? 'LISTO' : goal.progress + '/' + goal.target }}</small>
-          </div>
-        }
-      </div>
-    </article>
-
-    <article class="panel achievements-panel">
-      <div class="panel-heading compact">
-        <div>
-          <p class="label">Logros</p>
-          <h3>Medallas arcade</h3>
-        </div>
-      </div>
-
-      <div class="achievements-grid">
-        @for (achievement of game.achievements(); track achievement.id) {
-          <div class="achievement-chip" [class.unlocked]="achievement.unlocked">
-            <strong>{{ achievement.unlocked ? '★' : '☆' }}</strong>
-            <span>{{ achievement.title }}</span>
-          </div>
-        }
-      </div>
-    </article>
-  </section>
-
-  <section class="content-grid">
-    <article class="panel shop-panel">
-      <div class="panel-heading">
-        <div>
+    <div class="tab-content">
+      @if (activePanelTab === 'shop') {
+        <div class="tab-heading">
           <p class="label">Tienda</p>
           <h3>Objetos útiles</h3>
         </div>
-      </div>
 
-      <div class="shop-list">
-        @for (item of game.shopItems; track item.key) {
-          <div class="shop-item">
-            <div class="item-icon">{{ item.icon }}</div>
-            <div>
-              <strong>{{ item.name }}</strong>
-              <p>{{ item.description }}</p>
+        <div class="shop-list compact-list">
+          @for (item of game.shopItems; track item.key) {
+            <div class="shop-item">
+              <div class="item-icon">{{ item.icon }}</div>
+              <div>
+                <strong>{{ item.name }}</strong>
+                <p>{{ item.description }}</p>
+              </div>
+              <button type="button" [disabled]="miniGameActive" (click)="buy(item)">
+                <span>🪙</span>{{ item.price }}
+              </button>
             </div>
-            <button type="button" [disabled]="miniGameActive" (click)="buy(item)">
-              <span>🪙</span>{{ item.price }}
-            </button>
-          </div>
-        }
-      </div>
-    </article>
+          }
+        </div>
+      }
 
-    <article class="panel inventory-panel">
-      <div class="panel-heading">
-        <div>
+      @if (activePanelTab === 'inventory') {
+        <div class="tab-heading">
           <p class="label">Inventario</p>
           <h3>Mochila</h3>
         </div>
-      </div>
 
-      <div class="inventory-grid">
-        @for (item of game.shopItems; track item.key) {
-          <button type="button" class="inventory-item" [disabled]="miniGameActive" (click)="useItem(item.key)">
-            <span>{{ item.icon }}</span>
-            <strong>x{{ game.state().inventory[item.key] }}</strong>
-            <small>{{ item.name }}</small>
-          </button>
-        }
-      </div>
-    </article>
-
-    <article class="panel log-panel">
-      <div class="panel-heading">
-        <div>
-          <p class="label">Diario</p>
-          <h3>Últimos eventos</h3>
+        <div class="inventory-grid compact-inventory">
+          @for (item of game.shopItems; track item.key) {
+            <button type="button" class="inventory-item" [disabled]="miniGameActive" (click)="useItem(item.key)">
+              <span>{{ item.icon }}</span>
+              <strong>x{{ game.state().inventory[item.key] }}</strong>
+              <small>{{ item.name }}</small>
+            </button>
+          }
         </div>
-        <button type="button" class="ghost" (click)="requestReset()">Nueva mascota</button>
-      </div>
+      }
 
-      <ul>
-        @for (entry of game.state().log; track entry) {
-          <li>{{ entry }}</li>
-        }
-      </ul>
-    </article>
+      @if (activePanelTab === 'missions') {
+        <div class="tab-heading">
+          <p class="label">Misiones</p>
+          <h3>Objetivos activos</h3>
+        </div>
+
+        <div class="goals-list compact-goals">
+          @for (goal of game.goals(); track goal.title) {
+            <div
+              class="goal-item"
+              [class.complete]="goal.complete"
+              [style.--goal-progress]="(goal.progress / goal.target) * 100 + '%'"
+            >
+              <div>
+                <strong>{{ goal.complete ? '✓' : '•' }} {{ goal.title }}</strong>
+                <span>{{ goal.description }}</span>
+              </div>
+              <small>{{ goal.complete ? 'LISTO' : goal.progress + '/' + goal.target }}</small>
+            </div>
+          }
+        </div>
+      }
+
+      @if (activePanelTab === 'achievements') {
+        <div class="tab-heading">
+          <p class="label">Logros</p>
+          <h3>Medallas arcade</h3>
+        </div>
+
+        <div class="achievements-grid compact-achievements">
+          @for (achievement of game.achievements(); track achievement.id) {
+            <div class="achievement-chip" [class.unlocked]="achievement.unlocked">
+              <strong>{{ achievement.unlocked ? '★' : '☆' }}</strong>
+              <span>{{ achievement.title }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      @if (activePanelTab === 'log') {
+        <div class="tab-heading with-action">
+          <div>
+            <p class="label">Diario</p>
+            <h3>Últimos eventos</h3>
+          </div>
+          <button type="button" class="ghost" (click)="requestReset()">Nueva mascota</button>
+        </div>
+
+        <div class="log-panel compact-log">
+          <ul>
+            @for (entry of game.state().log; track entry) {
+              <li>{{ entry }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
   </section>
 
   @if (miniGameActive) {
