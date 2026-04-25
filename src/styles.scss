@@ -1,19 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
 * {
   box-sizing: border-box;
 }
 
 html {
   min-height: 100%;
-  background: #f7e9d2;
+  background: #fff0f5;
 }
 
 body {
   min-height: 100%;
   margin: 0;
-  color: #392b39;
-  font-family: Inter, ui-rounded, "Segoe UI", system-ui, sans-serif;
+  color: #5c4b51;
+  font-family: 'Nunito', ui-rounded, "Segoe UI", system-ui, sans-serif;
 }
 
 button {
   font: inherit;
+  cursor: pointer;
 }
