@@ -30,4 +30,20 @@ export class App implements OnInit, OnDestroy {
 
     return 'high';
   }
+
+  protected runAction(action: string): void {
+    if (action === 'feed') {
+      this.game.feed();
+    } else if (action === 'play') {
+      this.game.play();
+    } else if (action === 'sleep') {
+      this.game.sleep();
+    } else if (action === 'clean') {
+      this.game.clean();
+    } else if (action === 'heal') {
+      this.game.heal();
+    } else if (action === 'trainReflexes') {
+      this.game.trainReflexes();
+    }
+  }
 }

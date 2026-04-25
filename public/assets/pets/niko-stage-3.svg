@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Niko etapa 3">
+  <rect width="320" height="320" rx="64" fill="#ffedd5"/>
+  <path d="M78 116l33-70 51 58" fill="#ea580c" stroke="#3b2a28" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M242 116l-33-70-51 58" fill="#ea580c" stroke="#3b2a28" stroke-width="8" stroke-linejoin="round"/>
+  <ellipse cx="160" cy="184" rx="113" ry="89" fill="#ea580c" stroke="#3b2a28" stroke-width="9"/>
+  <path d="M99 190q61 55 122 0q-22 68-122 0z" fill="#fff7ed"/>
+  <path d="M116 163q13-10 26 0" fill="none" stroke="#3b2a28" stroke-width="8" stroke-linecap="round"/>
+  <path d="M178 163q13-10 26 0" fill="none" stroke="#3b2a28" stroke-width="8" stroke-linecap="round"/>
+  <path d="M137 202q23 20 46 0" fill="none" stroke="#3b2a28" stroke-width="8" stroke-linecap="round"/>
+  <path d="M235 202q50 0 66 47q-58 10-95-23" fill="#ea580c" stroke="#3b2a28" stroke-width="8" stroke-linecap="round"/>
+  <path d="M160 48l10 20 22 3-16 16 4 22-20-11-20 11 4-22-16-16 22-3z" fill="#ffd166" stroke="#3b2a28" stroke-width="5"/>
+</svg>

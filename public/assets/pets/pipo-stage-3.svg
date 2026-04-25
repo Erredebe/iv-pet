@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Pipo etapa 3">
+  <rect width="320" height="320" rx="64" fill="#d4ffe4"/>
+  <path d="M73 190q-43-50-33-103q43 24 64 72" fill="#9be7b4" stroke="#26352d" stroke-width="8"/>
+  <path d="M247 190q43-50 33-103q-43 24-64 72" fill="#9be7b4" stroke="#26352d" stroke-width="8"/>
+  <ellipse cx="160" cy="185" rx="112" ry="88" fill="#43bf70" stroke="#26352d" stroke-width="9"/>
+  <path d="M90 111l34-55 26 60" fill="#43bf70" stroke="#26352d" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M170 108l35-54 25 62" fill="#43bf70" stroke="#26352d" stroke-width="8" stroke-linejoin="round"/>
+  <circle cx="126" cy="169" r="12" fill="#26352d"/>
+  <circle cx="194" cy="169" r="12" fill="#26352d"/>
+  <path d="M132 202q28 23 56 0" fill="none" stroke="#26352d" stroke-width="8" stroke-linecap="round"/>
+  <path d="M160 48l15 29h-30z" fill="#ffd166" stroke="#26352d" stroke-width="6"/>
+</svg>

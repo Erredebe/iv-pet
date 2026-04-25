@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Luma etapa 3">
+  <rect width="320" height="320" rx="64" fill="#eadfff"/>
+  <circle cx="160" cy="160" r="112" fill="#c4b5fd" opacity=".28"/>
+  <path d="M160 36l39 76 85 13-62 60 15 85-77-40-76 40 14-85-62-60 85-13z" fill="#ffc94f" stroke="#34294b" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M122 155q12-11 24 0" fill="none" stroke="#34294b" stroke-width="8" stroke-linecap="round"/>
+  <path d="M174 155q12-11 24 0" fill="none" stroke="#34294b" stroke-width="8" stroke-linecap="round"/>
+  <path d="M136 189q24 22 48 0" fill="none" stroke="#34294b" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="101" cy="178" r="15" fill="#ff8daf" opacity=".72"/>
+  <circle cx="219" cy="178" r="15" fill="#ff8daf" opacity=".72"/>
+  <circle cx="260" cy="77" r="11" fill="#fff"/>
+  <circle cx="61" cy="217" r="8" fill="#fff"/>
+</svg>

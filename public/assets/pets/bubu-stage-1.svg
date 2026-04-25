@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Bubu etapa 1">
+  <rect width="320" height="320" rx="64" fill="#dff7ff"/>
+  <path d="M160 61q83 79 83 141q0 66-83 66t-83-66q0-62 83-141z" fill="#67d6ff" stroke="#21394a" stroke-width="9"/>
+  <circle cx="132" cy="174" r="12" fill="#21394a"/>
+  <circle cx="188" cy="174" r="12" fill="#21394a"/>
+  <path d="M145 202q15 12 30 0" fill="none" stroke="#21394a" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="107" cy="196" r="14" fill="#7ee7ff" opacity=".9"/>
+  <circle cx="213" cy="196" r="14" fill="#7ee7ff" opacity=".9"/>
+  <circle cx="210" cy="102" r="14" fill="#fff" opacity=".65"/>
+</svg>

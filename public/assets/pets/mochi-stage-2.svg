@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Mochi etapa 2">
+  <rect width="320" height="320" rx="64" fill="#ffe8f0"/>
+  <path d="M72 112q10-70 70-32" fill="#fff4d7" stroke="#3c2f3d" stroke-width="8"/>
+  <path d="M248 112q-10-70-70-32" fill="#fff4d7" stroke="#3c2f3d" stroke-width="8"/>
+  <ellipse cx="160" cy="178" rx="112" ry="88" fill="#ffc1d6" stroke="#3c2f3d" stroke-width="9"/>
+  <path d="M78 135q40-36 88-8q50-31 94 8" fill="none" stroke="#fff7cf" stroke-width="24" stroke-linecap="round"/>
+  <ellipse cx="128" cy="169" rx="13" ry="18" fill="#3c2f3d"/>
+  <ellipse cx="192" cy="169" rx="13" ry="18" fill="#3c2f3d"/>
+  <path d="M140 198q20 20 40 0" fill="none" stroke="#3c2f3d" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="99" cy="198" r="17" fill="#ff7aa8" opacity=".78"/>
+  <circle cx="221" cy="198" r="17" fill="#ff7aa8" opacity=".78"/>
+  <circle cx="240" cy="76" r="12" fill="#fff" opacity=".9"/>
+</svg>

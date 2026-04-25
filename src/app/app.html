@@ -1,93 +1,121 @@
-<main class="shell">
-  <section class="hero-card">
-    <div class="hero-copy">
-      <span class="eyebrow">Tamagotchi sin backend</span>
-      <h1>Cuida a {{ game.state().name }} todos los dias.</h1>
-      <p>
-        Alimenta, juega, descansa, compra objetos y gana monedas para que tu
-        mascota evolucione en una criatura feliz.
-      </p>
+<main class="shell" [style.--pet-accent]="game.pet().accent">
+  <section class="topbar">
+    <div>
+      <span class="eyebrow">Criatura asignada</span>
+      <h1>{{ game.state().name }}</h1>
+      <p>{{ game.pet().speciesName }} · {{ game.pet().personality }}</p>
     </div>
 
-    <div class="wallet">
-      <span>Monedas</span>
-      <strong>{{ game.state().coins }}</strong>
-    </div>
-  </section>
-
-  <section class="dashboard">
-    <article class="pet-card">
-      <div class="pet-stage" [class]="game.mood().color">
-        <div class="sparkle one"></div>
-        <div class="sparkle two"></div>
-        <div class="pet-shadow"></div>
-        <div class="pet-body">
-          <div class="pet-ears"></div>
-          <div class="pet-face">{{ game.mood().face }}</div>
-          <div class="pet-blush left"></div>
-          <div class="pet-blush right"></div>
-        </div>
+    <div class="quick-stats" aria-label="Resumen de partida">
+      <div>
+        <span>Monedas</span>
+        <strong>{{ game.state().coins }}</strong>
       </div>
-
-      <div class="pet-summary">
-        <div>
-          <p class="label">Estado</p>
-          <h2>{{ game.mood().label }}</h2>
-        </div>
-        <div>
-          <p class="label">Evolucion</p>
-          <h2>{{ game.evolution().emoji }} {{ game.evolution().name }}</h2>
-        </div>
+      <div>
+        <span>Nivel</span>
+        <strong>{{ game.state().level }}</strong>
       </div>
-
-      <div class="meta-grid">
-        <span>Edad {{ game.state().age }}</span>
-        <span>Nivel {{ game.state().level }}</span>
-        <span>XP {{ game.state().xp }}/{{ game.state().level * 100 }}</span>
-      </div>
-    </article>
-
-    <article class="panel stats-panel">
-      <div class="panel-heading">
-        <p class="label">Cuidados</p>
+      <div>
+        <span>Cuidado</span>
         <strong>{{ game.averageCare() }}%</strong>
       </div>
-
-      <div class="stat-list">
-        @for (stat of [
-          { name: 'Hambre', key: 'hunger', value: game.state().hunger },
-          { name: 'Energia', key: 'energy', value: game.state().energy },
-          { name: 'Felicidad', key: 'happiness', value: game.state().happiness },
-          { name: 'Higiene', key: 'hygiene', value: game.state().hygiene },
-          { name: 'Salud', key: 'health', value: game.state().health }
-        ]; track stat.key) {
-          <div class="stat-row">
-            <span>{{ stat.name }}</span>
-            <div class="bar">
-              <div [class]="'fill ' + statLevel(stat.value)" [style.width.%]="stat.value"></div>
-            </div>
-            <strong>{{ stat.value }}%</strong>
-          </div>
-        }
-      </div>
-    </article>
+    </div>
   </section>
 
-  <section class="actions-grid">
-    <button type="button" (click)="game.feed()">Alimentar</button>
-    <button type="button" (click)="game.play()">Jugar</button>
-    <button type="button" (click)="game.sleep()">Dormir</button>
-    <button type="button" (click)="game.clean()">Bano</button>
-    <button type="button" (click)="game.heal()">Clinica</button>
-    <button type="button" class="mini" (click)="game.trainReflexes()">Minijuego</button>
+  <section class="hero-grid">
+    <article class="pet-card">
+      <div class="pet-stage" [class]="game.mood().color">
+        <div class="stage-orb orb-one"></div>
+        <div class="stage-orb orb-two"></div>
+        <img class="pet-image" [src]="game.petImage()" [alt]="game.pet().speciesName" />
+        <div class="mood-badge">{{ game.mood().face }} {{ game.mood().label }}</div>
+      </div>
+
+      <div class="pet-info-grid">
+        <div>
+          <p class="label">Evolución</p>
+          <h2>{{ game.stage().name }}</h2>
+        </div>
+        <div>
+          <p class="label">Edad</p>
+          <h2>{{ game.state().age }} días</h2>
+        </div>
+        <div>
+          <p class="label">XP</p>
+          <h2>{{ game.state().xp }}/{{ game.state().level * 100 }}</h2>
+        </div>
+      </div>
+    </article>
+
+    <aside class="side-stack">
+      <article class="tip-card">
+        <span class="eyebrow">Siguiente mejor acción</span>
+        <p>{{ game.careTip() }}</p>
+      </article>
+
+      <article class="trait-card">
+        <div>
+          <p class="label">Bonus</p>
+          <strong>{{ game.pet().bonus }}</strong>
+        </div>
+        <div>
+          <p class="label">Cuidado especial</p>
+          <strong>{{ game.pet().weakness }}</strong>
+        </div>
+      </article>
+
+      <article class="panel stats-panel">
+        <div class="panel-heading compact">
+          <div>
+            <p class="label">Necesidades</p>
+            <h3>Estado actual</h3>
+          </div>
+        </div>
+
+        <div class="stat-list">
+          @for (stat of [
+            { icon: '🍽️', name: 'Hambre', key: 'hunger', value: game.state().hunger },
+            { icon: '⚡', name: 'Energía', key: 'energy', value: game.state().energy },
+            { icon: '💛', name: 'Felicidad', key: 'happiness', value: game.state().happiness },
+            { icon: '🫧', name: 'Higiene', key: 'hygiene', value: game.state().hygiene },
+            { icon: '💚', name: 'Salud', key: 'health', value: game.state().health }
+          ]; track stat.key) {
+            <div class="stat-row" [class.warning]="stat.value < 35">
+              <span class="stat-name">{{ stat.icon }} {{ stat.name }}</span>
+              <div class="bar" aria-hidden="true">
+                <div [class]="'fill ' + statLevel(stat.value)" [style.width.%]="stat.value"></div>
+              </div>
+              <strong>{{ stat.value }}%</strong>
+            </div>
+          }
+        </div>
+      </article>
+    </aside>
+  </section>
+
+  <section class="actions-panel" aria-label="Acciones principales">
+    @for (action of [
+      { icon: '🍽️', title: 'Alimentar', hint: '+18 hambre', handler: 'feed' },
+      { icon: '🎾', title: 'Jugar', hint: '+felicidad, -energía', handler: 'play' },
+      { icon: '🌙', title: 'Dormir', hint: '+energía y salud', handler: 'sleep' },
+      { icon: '🫧', title: 'Baño', hint: '+25 higiene', handler: 'clean' },
+      { icon: '🏥', title: 'Clínica', hint: '10 monedas', handler: 'heal' },
+      { icon: '✨', title: 'Luciérnagas', hint: 'gana monedas', handler: 'trainReflexes' }
+    ]; track action.handler) {
+      <button type="button" class="action-card" (click)="runAction(action.handler)">
+        <span>{{ action.icon }}</span>
+        <strong>{{ action.title }}</strong>
+        <small>{{ action.hint }}</small>
+      </button>
+    }
   </section>
 
   <section class="content-grid">
-    <article class="panel">
+    <article class="panel shop-panel">
       <div class="panel-heading">
         <div>
           <p class="label">Tienda</p>
-          <h3>Objetos utiles</h3>
+          <h3>Objetos útiles</h3>
         </div>
       </div>
 
@@ -128,9 +156,9 @@
       <div class="panel-heading">
         <div>
           <p class="label">Diario</p>
-          <h3>Ultimos eventos</h3>
+          <h3>Últimos eventos</h3>
         </div>
-        <button type="button" class="ghost" (click)="game.reset()">Reiniciar</button>
+        <button type="button" class="ghost" (click)="game.reset()">Nueva mascota</button>
       </div>
 
       <ul>
