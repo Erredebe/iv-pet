@@ -1,7 +1,7 @@
 import { computed, Injectable, signal } from '@angular/core';
 
 type InventoryKey = 'berry' | 'soap' | 'medicine' | 'ball';
-type PetSpecies = 'mochi' | 'pipo' | 'luma' | 'bubu' | 'niko';
+export type PetSpecies = 'mochi' | 'pipo' | 'luma' | 'bubu' | 'niko';
 
 interface InventoryItem {
   key: InventoryKey;
@@ -155,6 +155,7 @@ const DEFAULT_INVENTORY: Record<InventoryKey, number> = {
 export class GameService {
   readonly shopItems = SHOP_ITEMS;
   readonly pets = PETS;
+  readonly needsOnboarding = signal(!hasSavedState());
   readonly state = signal<GameState>(this.loadState());
 
   readonly pet = computed(() => this.findPet(this.state().species));
@@ -219,6 +220,55 @@ export class GameService {
 
     return `Atencion: ${pet.name} tiene baja ${lowest.label}. ${lowest.tip}`;
   });
+
+  readonly xpProgress = computed(() => {
+    const pet = this.state();
+    const threshold = this.xpThreshold(pet);
+
+    return {
+      current: pet.xp,
+      threshold,
+      percent: Math.min(100, Math.round((pet.xp / threshold) * 100)),
+    };
+  });
+
+  readonly goals = computed(() => {
+    const pet = this.state();
+    const care = this.averageCare();
+
+    return [
+      {
+        title: 'Cuidador atento',
+        description: 'Mantén el cuidado medio sobre 80%.',
+        progress: Math.min(care, 80),
+        target: 80,
+        complete: care >= 80,
+      },
+      {
+        title: 'Primera evolución',
+        description: 'Sube a nivel 2 para cambiar de etapa.',
+        progress: Math.min(pet.level, 2),
+        target: 2,
+        complete: pet.level >= 2,
+      },
+      {
+        title: 'Ahorrador',
+        description: 'Junta 75 monedas para la tienda.',
+        progress: Math.min(pet.coins, 75),
+        target: 75,
+        complete: pet.coins >= 75,
+      },
+    ];
+  });
+
+  adoptPet(species: PetSpecies, name: string): void {
+    const pet = this.findPet(species);
+    const petName = name.trim().slice(0, 18) || pet.displayName;
+
+    this.state.set(this.createInitialState(pet, [`Ha nacido ${petName}, una mascota ${pet.speciesName}.`], petName));
+    this.needsOnboarding.set(false);
+    this.save();
+  }
 
   tick(): void {
     const now = Date.now();
@@ -471,14 +521,12 @@ export class GameService {
   }
 
   reset(): void {
-    const pet = randomPet();
-    this.state.set(this.createInitialState(pet, [`Ha nacido ${pet.displayName}, una mascota ${pet.speciesName}.`]));
-    this.save();
+    this.needsOnboarding.set(true);
   }
 
-  private createInitialState(pet: PetDefinition, log: string[]): GameState {
+  private createInitialState(pet: PetDefinition, log: string[], name = pet.displayName): GameState {
     return {
-      name: pet.displayName,
+      name,
       species: pet.id,
       coins: 35,
       age: 1,
@@ -499,12 +547,11 @@ export class GameService {
   private levelUp(pet: GameState, xpBonus = 0): GameState {
     let next = { ...pet, xp: pet.xp + xpBonus };
     let leveled = false;
-    const thresholdModifier = pet.species === 'luma' ? 0.85 : 1;
 
-    while (next.xp >= Math.round(next.level * 100 * thresholdModifier)) {
+    while (next.xp >= this.xpThreshold(next)) {
       next = {
         ...next,
-        xp: next.xp - Math.round(next.level * 100 * thresholdModifier),
+        xp: next.xp - this.xpThreshold(next),
         level: next.level + 1,
         coins: next.coins + 25,
         health: clamp(next.health + 10),
@@ -520,6 +567,12 @@ export class GameService {
       ...pet,
       log: [entry, ...pet.log].slice(0, 7),
     };
+  }
+
+  private xpThreshold(pet: Pick<GameState, 'level' | 'species'>): number {
+    const thresholdModifier = pet.species === 'luma' ? 0.85 : 1;
+
+    return Math.round(pet.level * 100 * thresholdModifier);
   }
 
   private applyReflexScore(pet: GameState, score: number, energyCost: number): GameState {
@@ -598,4 +651,8 @@ function randomPet(): PetDefinition {
 
 function clamp(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function hasSavedState(): boolean {
+  return typeof localStorage !== 'undefined' && localStorage.getItem(STORAGE_KEY) !== null;
 }

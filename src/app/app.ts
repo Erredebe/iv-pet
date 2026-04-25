@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { ActionResult, GameService } from './game.service';
+import { ActionResult, GameService, PetSpecies } from './game.service';
 
 type InventoryAction = 'berry' | 'soap' | 'medicine' | 'ball';
 type ActionName = 'feed' | 'play' | 'sleep' | 'clean' | 'heal' | InventoryAction;
@@ -33,6 +33,9 @@ export class App implements OnInit, OnDestroy {
   protected miniGameScore = 0;
   protected miniGameTime = 0;
   protected fireflies: Firefly[] = [];
+  protected selectedSpecies: PetSpecies = this.game.state().species;
+  protected petName = this.game.state().name;
+  protected confirmReset = false;
 
   ngOnInit(): void {
     this.game.tick();
@@ -105,6 +108,34 @@ export class App implements OnInit, OnDestroy {
   protected closeMiniGameResult(): void {
     this.miniGameFinished = false;
     this.miniGameResult = undefined;
+  }
+
+  protected selectPet(species: PetSpecies): void {
+    this.selectedSpecies = species;
+  }
+
+  protected updatePetName(event: Event): void {
+    this.petName = (event.target as HTMLInputElement).value;
+  }
+
+  protected adoptSelectedPet(): void {
+    this.game.adoptPet(this.selectedSpecies, this.petName);
+    this.petName = this.game.state().name;
+    this.confirmReset = false;
+    this.showFeedback({ success: true, message: `${this.game.state().name} ya forma parte de tu equipo.` });
+  }
+
+  protected requestReset(): void {
+    this.confirmReset = true;
+  }
+
+  protected cancelReset(): void {
+    this.confirmReset = false;
+  }
+
+  protected confirmNewPet(): void {
+    this.confirmReset = false;
+    this.game.reset();
   }
 
   private handleResult(action: ActionName, result: ActionResult): void {

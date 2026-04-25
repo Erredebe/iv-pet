@@ -91,8 +91,12 @@
         </div>
         <div>
           <p class="label">XP</p>
-          <h2>{{ game.state().xp }}/{{ game.state().level * 100 }}</h2>
+          <h2>{{ game.xpProgress().current }}/{{ game.xpProgress().threshold }}</h2>
         </div>
+      </div>
+
+      <div class="xp-track" aria-label="Progreso de experiencia">
+        <div [style.width.%]="game.xpProgress().percent"></div>
       </div>
     </article>
 
@@ -110,6 +114,27 @@
         <div>
           <p class="label">Cuidado especial</p>
           <strong>{{ game.pet().weakness }}</strong>
+        </div>
+      </article>
+
+      <article class="panel goals-panel">
+        <div class="panel-heading compact">
+          <div>
+            <p class="label">Misiones</p>
+            <h3>Objetivos activos</h3>
+          </div>
+        </div>
+
+        <div class="goals-list">
+          @for (goal of game.goals(); track goal.title) {
+            <div class="goal-item" [class.complete]="goal.complete">
+              <div>
+                <strong>{{ goal.complete ? '✓' : '•' }} {{ goal.title }}</strong>
+                <span>{{ goal.description }}</span>
+              </div>
+              <small>{{ goal.progress }}/{{ goal.target }}</small>
+            </div>
+          }
         </div>
       </article>
 
@@ -209,7 +234,7 @@
           <p class="label">Diario</p>
           <h3>Últimos eventos</h3>
         </div>
-        <button type="button" class="ghost" (click)="game.reset()">Nueva mascota</button>
+        <button type="button" class="ghost" (click)="requestReset()">Nueva mascota</button>
       </div>
 
       <ul>
@@ -282,6 +307,56 @@
           <button type="button" class="primary" (click)="closeMiniGameResult(); runAction('trainReflexes')">
             Jugar otra vez
           </button>
+        </div>
+      </div>
+    </section>
+  }
+
+  @if (game.needsOnboarding()) {
+    <section class="onboarding" aria-label="Elegir mascota inicial">
+      <div class="onboarding-card">
+        <div class="onboarding-heading">
+          <p class="label">Nueva partida</p>
+          <h2>Elige tu compañero</h2>
+          <p>Cada criatura tiene personalidad, ventaja y debilidad. Tu elección cambia cómo se siente la partida.</p>
+        </div>
+
+        <div class="pet-picker">
+          @for (pet of game.pets; track pet.id) {
+            <button
+              type="button"
+              class="pet-option"
+              [class.selected]="selectedSpecies === pet.id"
+              [style.--pet-option-accent]="pet.accent"
+              (click)="selectPet(pet.id)"
+            >
+              <img [src]="'assets/pets/' + pet.imageBase + '-stage-1.svg'" [alt]="pet.speciesName" />
+              <strong>{{ pet.displayName }}</strong>
+              <span>{{ pet.speciesName }}</span>
+              <small>{{ pet.bonus }}</small>
+            </button>
+          }
+        </div>
+
+        <label class="name-field">
+          <span>Nombre de tu mascota</span>
+          <input type="text" maxlength="18" [value]="petName" (input)="updatePetName($event)" />
+        </label>
+
+        <button type="button" class="start-button" (click)="adoptSelectedPet()">Empezar a cuidar</button>
+      </div>
+    </section>
+  }
+
+  @if (confirmReset) {
+    <section class="confirm-modal" aria-label="Confirmar nueva mascota">
+      <div class="confirm-card">
+        <p class="label">Confirmación</p>
+        <h3>¿Crear una nueva mascota?</h3>
+        <p>Tu mascota actual seguirá visible hasta que elijas otra, pero empezar una nueva partida reemplazará su progreso.</p>
+        <div class="result-actions">
+          <button type="button" (click)="cancelReset()">Cancelar</button>
+          <button type="button" class="primary" (click)="confirmNewPet()">Elegir nueva mascota</button>
         </div>
       </div>
     </section>
